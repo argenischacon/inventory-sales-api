@@ -2,12 +2,12 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.ProductNestedDTO;
 import com.argenischacon.inventory_sales_api.dto.SaleDetailResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.SaleDetailMapper;
 import com.argenischacon.inventory_sales_api.model.Product;
 import com.argenischacon.inventory_sales_api.model.SaleDetail;
 import com.argenischacon.inventory_sales_api.repository.SaleDetailRepository;
 import com.argenischacon.inventory_sales_api.repository.SaleRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,7 +83,7 @@ public class SaleDetailServiceTest {
 
         when(saleRepository.existsById(saleId)).thenReturn(false);
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleDetailService.findBySaleId(saleId));
 
         assertEquals("Sale not found", ex.getMessage());

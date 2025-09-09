@@ -2,10 +2,10 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CategoryRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CategoryResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CategoryMapper;
 import com.argenischacon.inventory_sales_api.model.Category;
 import com.argenischacon.inventory_sales_api.repository.CategoryRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -104,7 +104,7 @@ public class CategoryServiceTest {
     void shouldThrowExceptionWhenUpdatingNonExistingCategory() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> categoryService.update(1L, new CategoryRequestDTO()));
 
         assertEquals("Category not found", ex.getMessage());
@@ -125,7 +125,7 @@ public class CategoryServiceTest {
     void shouldThrowExceptionWhenDeletingNonExistingCategory() {
         when(categoryRepository.existsById(1L)).thenReturn(false);
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> categoryService.delete(1L));
 
         assertEquals("Category not found", ex.getMessage());
@@ -147,7 +147,7 @@ public class CategoryServiceTest {
     void shouldThrowExceptionWhenFindingNonExistingCategory() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> categoryService.findById(1L));
 
         assertEquals("Category not found", ex.getMessage());

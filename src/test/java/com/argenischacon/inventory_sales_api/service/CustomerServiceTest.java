@@ -2,10 +2,10 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CustomerRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CustomerMapper;
 import com.argenischacon.inventory_sales_api.model.Customer;
 import com.argenischacon.inventory_sales_api.repository.CustomerRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -99,7 +99,7 @@ public class CustomerServiceTest {
     void shouldThrowExceptionWhenUpdatingNonExistingCustomer() {
         when(customerRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> customerService.update(1L, baseRequestDTO)
         );
 
@@ -121,7 +121,7 @@ public class CustomerServiceTest {
     void shouldThrowExceptionWhenDeletingNonExistingCustomer() {
         when(customerRepository.existsById(1L)).thenReturn(false);
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> customerService.delete(1L));
 
         assertEquals("Customer not found", ex.getMessage());
@@ -143,7 +143,7 @@ public class CustomerServiceTest {
     void shouldThrowExceptionWhenFindingNonExistingCustomer() {
         when(customerRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> customerService.findById(1L));
 
         assertEquals("Customer not found", ex.getMessage());

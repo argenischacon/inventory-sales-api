@@ -3,12 +3,12 @@ package com.argenischacon.inventory_sales_api.service;
 import com.argenischacon.inventory_sales_api.dto.CategoryNestedDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.ProductMapper;
 import com.argenischacon.inventory_sales_api.model.Category;
 import com.argenischacon.inventory_sales_api.model.Product;
 import com.argenischacon.inventory_sales_api.repository.CategoryRepository;
 import com.argenischacon.inventory_sales_api.repository.ProductRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -104,7 +104,7 @@ public class ProductServiceTest {
     void shouldThrowExceptionWhenCreatingProductWithNonExistingCategory() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.create(baseProductRequestDTO));
 
         assertEquals("Category not found", ex.getMessage());
@@ -175,7 +175,7 @@ public class ProductServiceTest {
     void shouldThrowExceptionWhenUpdatingNonExistingProduct() {
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.update(1L, baseProductRequestDTO));
 
         assertEquals("Product not found", ex.getMessage());
@@ -191,7 +191,7 @@ public class ProductServiceTest {
         when(productRepository.findById(1L)).thenReturn(Optional.of(baseProduct));
         when(categoryRepository.findById(5L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.update(1L, updatingRequestDTO));
 
         assertEquals("Category not found", ex.getMessage());
@@ -221,7 +221,7 @@ public class ProductServiceTest {
     void shouldThrowExceptionWhenDeletingNonExistingProduct() {
         when(productRepository.existsById(1L)).thenReturn(false);
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.delete(1L));
 
         assertEquals("Product not found", ex.getMessage());
@@ -243,7 +243,7 @@ public class ProductServiceTest {
     void shouldThrowExceptionWhenFindingNonExistingProduct() {
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.findById(1L));
 
         assertEquals("Product not found", ex.getMessage());

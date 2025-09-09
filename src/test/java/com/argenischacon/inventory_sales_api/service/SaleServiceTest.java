@@ -1,6 +1,7 @@
 package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.*;
+import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.SaleMapper;
 import com.argenischacon.inventory_sales_api.model.Customer;
 import com.argenischacon.inventory_sales_api.model.Product;
@@ -9,7 +10,6 @@ import com.argenischacon.inventory_sales_api.model.SaleDetail;
 import com.argenischacon.inventory_sales_api.repository.CustomerRepository;
 import com.argenischacon.inventory_sales_api.repository.ProductRepository;
 import com.argenischacon.inventory_sales_api.repository.SaleRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -150,7 +150,7 @@ public class SaleServiceTest{
     void shouldThrowExceptionWhenCreatingSaleNonExistingCustomer() {
         when(customerRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleService.create(baseSaleRequestDTO));
 
         assertEquals("Customer not found", ex.getMessage());
@@ -186,7 +186,7 @@ public class SaleServiceTest{
     void shouldThrowExceptionWhenUpdatingNonExistingSale() {
         when(saleRepository.findById(200L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleService.update(200L, baseSaleRequestDTO));
 
         assertEquals("Sale not found", ex.getMessage());
@@ -209,7 +209,7 @@ public class SaleServiceTest{
     void shouldThrowExceptionWhenDeletingNonExistingSale() {
         when(saleRepository.existsById(200L)).thenReturn(false);
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleService.delete(200L));
 
         assertEquals("Sale not found", ex.getMessage());
@@ -235,7 +235,7 @@ public class SaleServiceTest{
     void shouldThrowExceptionWhenFindingNonExistingSale() {
         when(saleRepository.findById(200L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleService.findById(200L));
 
         assertEquals("Sale not found", ex.getMessage());
