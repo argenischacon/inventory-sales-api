@@ -2,10 +2,10 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CustomerRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CustomerMapper;
 import com.argenischacon.inventory_sales_api.model.Customer;
 import com.argenischacon.inventory_sales_api.repository.CustomerRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ public class CustomerServiceImpl implements CustomerService{
     @Override
     public CustomerResponseDTO update(Long id, CustomerRequestDTO dto) {
         Customer entity = customerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
         customerMapper.updateEntityFromDto(dto, entity);
         return customerMapper.toResponse(customerRepository.save(entity));
     }
@@ -34,7 +34,7 @@ public class CustomerServiceImpl implements CustomerService{
     @Override
     public void delete(Long id) {
         if(!customerRepository.existsById(id)){
-            throw new EntityNotFoundException("Customer not found");
+            throw new ResourceNotFoundException("Customer not found");
         }
         customerRepository.deleteById(id);
     }
@@ -42,7 +42,7 @@ public class CustomerServiceImpl implements CustomerService{
     @Override
     public CustomerResponseDTO findById(Long id) {
         Customer entity = customerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
         return customerMapper.toResponse(entity);
     }
 

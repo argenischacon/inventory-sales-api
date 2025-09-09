@@ -3,6 +3,7 @@ package com.argenischacon.inventory_sales_api.service;
 import com.argenischacon.inventory_sales_api.dto.SaleDetailRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.SaleRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.SaleResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.SaleMapper;
 import com.argenischacon.inventory_sales_api.model.Customer;
 import com.argenischacon.inventory_sales_api.model.Product;
@@ -11,7 +12,6 @@ import com.argenischacon.inventory_sales_api.model.SaleDetail;
 import com.argenischacon.inventory_sales_api.repository.CustomerRepository;
 import com.argenischacon.inventory_sales_api.repository.ProductRepository;
 import com.argenischacon.inventory_sales_api.repository.SaleRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class SaleServiceImpl implements SaleService{
     @Transactional
     public SaleResponseDTO create(SaleRequestDTO dto) {
         Customer customer = customerRepository.findById(dto.getCustomerId())
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         Sale sale = new Sale();
         sale.setCustomer(customer);
@@ -46,10 +46,10 @@ public class SaleServiceImpl implements SaleService{
     @Transactional
     public SaleResponseDTO update(Long id, SaleRequestDTO dto) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Sale not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
 
         Customer customer = customerRepository.findById(dto.getCustomerId())
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         sale.setCustomer(customer);
 
@@ -94,7 +94,7 @@ public class SaleServiceImpl implements SaleService{
     @Override
     public void delete(Long id) {
         if (!saleRepository.existsById(id)) {
-            throw new EntityNotFoundException("Sale not found");
+            throw new ResourceNotFoundException("Sale not found");
         }
         saleRepository.deleteById(id);
     }
@@ -102,7 +102,7 @@ public class SaleServiceImpl implements SaleService{
     @Override
     public SaleResponseDTO findById(Long id) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Sale not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
 
         return saleMapper.toResponse(sale);
     }
@@ -126,6 +126,6 @@ public class SaleServiceImpl implements SaleService{
 
     private Product findProductById(Long id) throws RuntimeException{
         return productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
     }
 }
