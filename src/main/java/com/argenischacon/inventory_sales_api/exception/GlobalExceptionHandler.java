@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<?> handleResourceNotFound(ResourceNotFoundException ex){
         Map<String, Object> body = new HashMap<>();
-        body.put("timestap", LocalDateTime.now());
+        body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.NOT_FOUND.value());
         body.put("error", "Resource not found");
         body.put("message", ex.getMessage());
