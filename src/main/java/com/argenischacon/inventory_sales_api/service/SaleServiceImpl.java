@@ -4,6 +4,7 @@ import com.argenischacon.inventory_sales_api.dto.SaleDetailRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.SaleRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.SaleResponseDTO;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
+import com.argenischacon.inventory_sales_api.mapper.SaleDetailMapper;
 import com.argenischacon.inventory_sales_api.mapper.SaleMapper;
 import com.argenischacon.inventory_sales_api.model.Customer;
 import com.argenischacon.inventory_sales_api.model.Product;
@@ -28,6 +29,7 @@ public class SaleServiceImpl implements SaleService{
     private final SaleMapper saleMapper;
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
+    private final SaleDetailMapper saleDetailMapper;
 
     @Override
     @Transactional
@@ -66,8 +68,7 @@ public class SaleServiceImpl implements SaleService{
                 Product foundProduct = findProductById(requestDTO.getProductId());
 
                 SaleDetail saleDetail = existingSaleDetails.get(requestDTO.getId());
-                saleDetail.setQuantity(requestDTO.getQuantity());
-                saleDetail.setUnitPrice(requestDTO.getUnitPrice());
+                saleDetailMapper.updateEntityFromDto(requestDTO, saleDetail);
                 saleDetail.setProduct(foundProduct);
 
                 updateDetails.add(saleDetail);
@@ -75,9 +76,7 @@ public class SaleServiceImpl implements SaleService{
                 // does not exist -> add
                 Product foundProduct = findProductById(requestDTO.getProductId());
 
-                SaleDetail newSaleDetail = new SaleDetail();
-                newSaleDetail.setQuantity(requestDTO.getQuantity());
-                newSaleDetail.setUnitPrice(requestDTO.getUnitPrice());
+                SaleDetail newSaleDetail = saleDetailMapper.toEntity(requestDTO);
                 newSaleDetail.setProduct(foundProduct);
 
                 updateDetails.add(newSaleDetail);
@@ -116,9 +115,7 @@ public class SaleServiceImpl implements SaleService{
         return dto.getSaleDetails().stream()
                 .map(requestDTO -> {
                     Product product = findProductById(requestDTO.getProductId());
-                    SaleDetail saleDetail = new SaleDetail();
-                    saleDetail.setQuantity(requestDTO.getQuantity());
-                    saleDetail.setUnitPrice(requestDTO.getUnitPrice());
+                    SaleDetail saleDetail = saleDetailMapper.toEntity(requestDTO);
                     saleDetail.setProduct(product);
                     return saleDetail;
                 }).toList();
