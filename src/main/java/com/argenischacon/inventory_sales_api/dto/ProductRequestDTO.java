@@ -19,9 +19,11 @@ public class ProductRequestDTO {
     private String description;
 
     @PositiveOrZero(message = "Unit price must not be negative")
+    @NotNull(message = "Unit price is required")
     private BigDecimal unitPrice;
 
     @PositiveOrZero (message = "Stock must be a positive number or zero")
+    @NotNull(message = "Stock is required")
     private Integer stock;
 
     @NotNull(message = "Category ID is required")

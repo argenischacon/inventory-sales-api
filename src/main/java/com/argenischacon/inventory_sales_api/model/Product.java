@@ -39,12 +39,14 @@ public class Product {
     private String description;
 
     @Column(nullable = false, precision = 19, scale = 2)
+    @NotNull
     @PositiveOrZero
     private BigDecimal unitPrice;
 
     @Column(nullable = false)
+    @NotNull
     @PositiveOrZero
-    private Integer stock;
+    private Integer stock = 0;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
