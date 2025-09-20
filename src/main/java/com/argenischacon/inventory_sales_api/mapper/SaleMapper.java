@@ -17,10 +17,4 @@ public interface SaleMapper {
 
     // List<Entity> -> List<ResponseDTO>
     List<SaleResponseDTO> toResponseList(List<Sale> sales);
-
-    // RequestDTO -> Entity
-    Sale toEntity(SaleRequestDTO saleRequestDTO);
-
-    // Update Entity from RequestDTO
-    void updateEntityFromDto(SaleRequestDTO dto, @MappingTarget Sale sale);
 }

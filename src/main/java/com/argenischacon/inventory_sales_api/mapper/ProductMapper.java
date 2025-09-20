@@ -4,8 +4,10 @@ import com.argenischacon.inventory_sales_api.dto.ProductNestedDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductResponseDTO;
 import com.argenischacon.inventory_sales_api.model.Product;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ public interface ProductMapper {
     Product toEntity(ProductRequestDTO productRequestDTO);
 
     // Update Entity from RequestDTO
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(ProductRequestDTO dto, @MappingTarget Product product);
 
     // Entity -> NestedDTO

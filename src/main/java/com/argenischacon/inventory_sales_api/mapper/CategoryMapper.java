@@ -4,8 +4,10 @@ import com.argenischacon.inventory_sales_api.dto.CategoryNestedDTO;
 import com.argenischacon.inventory_sales_api.dto.CategoryRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CategoryResponseDTO;
 import com.argenischacon.inventory_sales_api.model.Category;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ public interface CategoryMapper {
     Category toEntity(CategoryRequestDTO categoryRequestDTO);
 
     // Update Entity from RequestDTO
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(CategoryRequestDTO dto, @MappingTarget Category category);
 
     //Entity -> NestedDTO

@@ -4,8 +4,10 @@ import com.argenischacon.inventory_sales_api.dto.CustomerNestedDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerResponseDTO;
 import com.argenischacon.inventory_sales_api.model.Customer;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ public interface CustomerMapper {
     Customer toEntity(CustomerRequestDTO customerRequestDTO);
 
     // Update Entity from RequestDTO
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(CustomerRequestDTO dto, @MappingTarget Customer customer);
 
     //Entity -> NestedDTO
