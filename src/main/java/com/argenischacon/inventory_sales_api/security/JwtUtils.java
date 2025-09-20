@@ -32,7 +32,7 @@ public class JwtUtils {
     }
 
     public String generateToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getDetails();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
 
