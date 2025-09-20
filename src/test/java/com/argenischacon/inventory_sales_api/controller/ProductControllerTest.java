@@ -4,6 +4,7 @@ import com.argenischacon.inventory_sales_api.dto.CategoryNestedDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductResponseDTO;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
+import com.argenischacon.inventory_sales_api.security.JwtUtils;
 import com.argenischacon.inventory_sales_api.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,9 @@ public class ProductControllerTest {
 
     @MockitoBean
     private ProductService productService;
+
+    @MockitoBean
+    private JwtUtils jwtUtils;
 
     private ProductRequestDTO baseProductRequestDTO;
     private ProductResponseDTO baseProductResponseDTO;

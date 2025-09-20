@@ -4,6 +4,7 @@ import com.argenischacon.inventory_sales_api.dto.CategoryRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CategoryResponseDTO;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.service.CategoryService;
+import com.argenischacon.inventory_sales_api.security.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,9 @@ public class CategoryControllerTest {
 
     @MockitoBean
     private CategoryService categoryService;
+
+    @MockitoBean
+    private JwtUtils jwtUtils;
 
     private CategoryRequestDTO baseCategoryRequestDTO;
     private CategoryResponseDTO baseCategoryResponseDTO;

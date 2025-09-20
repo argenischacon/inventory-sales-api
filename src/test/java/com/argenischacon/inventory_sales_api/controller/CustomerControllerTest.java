@@ -3,6 +3,7 @@ package com.argenischacon.inventory_sales_api.controller;
 import com.argenischacon.inventory_sales_api.dto.CustomerRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerResponseDTO;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
+import com.argenischacon.inventory_sales_api.security.JwtUtils;
 import com.argenischacon.inventory_sales_api.service.CustomerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,9 @@ public class CustomerControllerTest {
 
     @MockitoBean
     private CustomerService customerService;
+
+    @MockitoBean
+    private JwtUtils jwtUtils;
 
     private CustomerRequestDTO baseCustomerRequestDTO;
     private CustomerResponseDTO baseCustomerResponseDTO;
