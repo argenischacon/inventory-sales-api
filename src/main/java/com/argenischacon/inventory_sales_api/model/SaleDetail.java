@@ -45,7 +45,7 @@ public class SaleDetail {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn (name = "product_id", nullable = false)
     @NotNull
     private Product product;
