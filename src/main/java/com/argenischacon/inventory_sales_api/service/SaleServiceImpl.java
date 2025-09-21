@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +37,10 @@ public class SaleServiceImpl implements SaleService{
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         Sale sale = new Sale();
+        sale.setDate(LocalDate.now());
         sale.setCustomer(customer);
-        sale.getSaleDetails().addAll(mapSaleDetail(dto));
+        List<SaleDetail> saleDetails = mapSaleDetail(dto, sale);
+        sale.getSaleDetails().addAll(saleDetails);
 
         return saleMapper.toResponse(saleRepository.save(sale));
     }
@@ -79,6 +82,7 @@ public class SaleServiceImpl implements SaleService{
                 newSaleDetail.setQuantity(requestDTO.getQuantity());
                 newSaleDetail.setUnitPrice(requestDTO.getUnitPrice());
                 newSaleDetail.setProduct(foundProduct);
+                newSaleDetail.setSale(sale);
 
                 updateDetails.add(newSaleDetail);
             }
@@ -112,7 +116,7 @@ public class SaleServiceImpl implements SaleService{
         return saleMapper.toResponseList(saleRepository.findAll());
     }
 
-    private List<SaleDetail> mapSaleDetail(SaleRequestDTO dto) throws RuntimeException {
+    private List<SaleDetail> mapSaleDetail(SaleRequestDTO dto, Sale sale) throws RuntimeException {
         return dto.getSaleDetails().stream()
                 .map(requestDTO -> {
                     Product product = findProductById(requestDTO.getProductId());
@@ -120,6 +124,7 @@ public class SaleServiceImpl implements SaleService{
                     saleDetail.setQuantity(requestDTO.getQuantity());
                     saleDetail.setUnitPrice(requestDTO.getUnitPrice());
                     saleDetail.setProduct(product);
+                    saleDetail.setSale(sale);
                     return saleDetail;
                 }).toList();
     }
