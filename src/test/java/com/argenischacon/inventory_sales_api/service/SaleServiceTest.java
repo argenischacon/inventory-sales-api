@@ -127,7 +127,7 @@ public class SaleServiceTest{
         Long productId = baseProduct.getId();
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(baseCustomer));
-        when(productRepository.findById(productId)).thenReturn(Optional.of(baseProduct));
+        when(productRepository.findAllById(List.of(productId))).thenReturn(List.of(baseProduct));
         when(saleRepository.save(any(Sale.class))).thenReturn(baseSale);
         when(saleMapper.toResponse(baseSale)).thenReturn(baseSaleResponseDTO);
 
@@ -141,7 +141,7 @@ public class SaleServiceTest{
         assertEquals(BigDecimal.valueOf(1000), result.getTotal());
 
         verify(customerRepository).findById(customerId);
-        verify(productRepository).findById(productId);
+        verify(productRepository).findAllById(List.of(productId));
         verify(saleRepository).save(any(Sale.class));
         verify(saleMapper).toResponse(baseSale);
     }
@@ -160,7 +160,19 @@ public class SaleServiceTest{
 
     @Test
     void shouldThrowExceptionWhenCreatingSaleNonExistingProductInSaleDetail() {
+        Long customerId = baseCustomer.getId();
+        Long productId = baseProduct.getId();
 
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(baseCustomer));
+        when(productRepository.findAllById(List.of(productId))).thenReturn(List.of());
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () ->
+                saleService.create(baseSaleRequestDTO));
+
+        assertEquals("Product not found with id: " + productId, ex.getMessage());
+        verify(customerRepository).findById(customerId);
+        verify(productRepository).findAllById(List.of(productId));
+        verifyNoInteractions(saleRepository, saleMapper);
     }
 
     // ==== UPDATE ====
@@ -168,7 +180,7 @@ public class SaleServiceTest{
     void shouldUpdateSaleWhenDataIsValid() {
         when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
         when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
-        when(productRepository.findById(10L)).thenReturn(Optional.of(baseProduct));
+        when(productRepository.findAllById(List.of(10L))).thenReturn(List.of(baseProduct));
         when(saleRepository.save(baseSale)).thenReturn(baseSale);
         when(saleMapper.toResponse(baseSale)).thenReturn(baseSaleResponseDTO);
 
@@ -177,7 +189,7 @@ public class SaleServiceTest{
         assertEquals(200L, result.getId());
         verify(saleRepository).findById(200L);
         verify(customerRepository).findById(1L);
-        verify(productRepository).findById(10L);
+        verify(productRepository).findAllById(List.of(10L));
         verify(saleRepository).save(baseSale);
         verify(saleMapper).toResponse(baseSale);
     }
@@ -192,6 +204,61 @@ public class SaleServiceTest{
         assertEquals("Sale not found", ex.getMessage());
         verify(saleRepository).findById(200L);
         verifyNoInteractions(customerRepository, productRepository, saleMapper);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingSaleWithNonExistingCustomer() {
+        when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
+        when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
+                () -> saleService.update(200L, baseSaleRequestDTO));
+
+        assertEquals("Customer not found", ex.getMessage());
+        verify(saleRepository).findById(200L);
+        verify(customerRepository).findById(1L);
+        verify(saleRepository, never()).save(any(Sale.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingSaleWithNonExistingProduct() {
+        Long saleId = baseSale.getId();
+        Long customerId = baseCustomer.getId();
+        Long productId = baseProduct.getId();
+
+        when(saleRepository.findById(saleId)).thenReturn(Optional.of(baseSale));
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(baseCustomer));
+        when(productRepository.findAllById(List.of(productId))).thenReturn(List.of());
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
+                () -> saleService.update(saleId, baseSaleRequestDTO));
+
+        assertEquals("Product not found with id: " + productId, ex.getMessage());
+        verify(saleRepository).findById(saleId);
+        verify(customerRepository).findById(customerId);
+        verify(productRepository).findAllById(List.of(productId));
+        verify(saleRepository, never()).save(any(Sale.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingSaleWithNonExistingSaleDetailId() {
+        Long saleId = baseSale.getId();
+        Long customerId = baseCustomer.getId();
+        Long productId = baseProduct.getId();
+        baseSaleDetailRequestDTO.setId(999L); // Non-existent detail ID
+
+        when(saleRepository.findById(saleId)).thenReturn(Optional.of(baseSale));
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(baseCustomer));
+        when(productRepository.findAllById(List.of(productId))).thenReturn(List.of(baseProduct));
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
+                () -> saleService.update(saleId, baseSaleRequestDTO));
+
+        assertEquals("In this sale, there is no sale detail with id: 999", ex.getMessage());
+        verify(saleRepository).findById(saleId);
+        verify(customerRepository).findById(customerId);
+        verify(productRepository).findAllById(List.of(productId));
+        verify(saleRepository, never()).save(any(Sale.class));
     }
 
     // ==== DELETE ====

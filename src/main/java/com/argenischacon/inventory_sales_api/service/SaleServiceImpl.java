@@ -17,14 +17,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class SaleServiceImpl implements SaleService{
+public class SaleServiceImpl implements SaleService {
     private final CustomerRepository customerRepository;
     private final SaleMapper saleMapper;
     private final SaleRepository saleRepository;
@@ -39,7 +39,7 @@ public class SaleServiceImpl implements SaleService{
         Sale sale = new Sale();
         sale.setDate(LocalDate.now());
         sale.setCustomer(customer);
-        List<SaleDetail> saleDetails = mapSaleDetail(dto, sale);
+        List<SaleDetail> saleDetails = mapSaleDetailFromDto(dto.getSaleDetails(), sale);
         sale.getSaleDetails().addAll(saleDetails);
 
         return saleMapper.toResponse(saleRepository.save(sale));
@@ -59,38 +59,12 @@ public class SaleServiceImpl implements SaleService{
         //Map of current SaleDetail
         Map<Long, SaleDetail> existingSaleDetails = sale.getSaleDetails()
                 .stream()
-                .collect(Collectors.toMap(SaleDetail::getId, saleDetail -> saleDetail));
+                .collect(Collectors.toMap(SaleDetail::getId, Function.identity()));
 
-        List<SaleDetail> updateDetails = new ArrayList<>();
+        List<SaleDetail> saleDetails = mapSaleDetailFromDto(dto.getSaleDetails(), sale, existingSaleDetails);
 
-        for (SaleDetailRequestDTO requestDTO : dto.getSaleDetails()) {
-            if (requestDTO.getId() != null && existingSaleDetails.containsKey(requestDTO.getId())) {
-                // already exists -> update
-                Product foundProduct = findProductById(requestDTO.getProductId());
-
-                SaleDetail saleDetail = existingSaleDetails.get(requestDTO.getId());
-                saleDetail.setQuantity(requestDTO.getQuantity());
-                saleDetail.setUnitPrice(requestDTO.getUnitPrice());
-                saleDetail.setProduct(foundProduct);
-
-                updateDetails.add(saleDetail);
-            } else {
-                // does not exist -> add
-                Product foundProduct = findProductById(requestDTO.getProductId());
-
-                SaleDetail newSaleDetail = new SaleDetail();
-                newSaleDetail.setQuantity(requestDTO.getQuantity());
-                newSaleDetail.setUnitPrice(requestDTO.getUnitPrice());
-                newSaleDetail.setProduct(foundProduct);
-                newSaleDetail.setSale(sale);
-
-                updateDetails.add(newSaleDetail);
-            }
-        }
-
-        // replace list with updated details
         sale.getSaleDetails().clear();
-        sale.getSaleDetails().addAll(updateDetails);
+        sale.getSaleDetails().addAll(saleDetails);
 
         return saleMapper.toResponse(saleRepository.save(sale));
     }
@@ -116,21 +90,44 @@ public class SaleServiceImpl implements SaleService{
         return saleMapper.toResponseList(saleRepository.findAll());
     }
 
-    private List<SaleDetail> mapSaleDetail(SaleRequestDTO dto, Sale sale) throws RuntimeException {
-        return dto.getSaleDetails().stream()
-                .map(requestDTO -> {
-                    Product product = findProductById(requestDTO.getProductId());
-                    SaleDetail saleDetail = new SaleDetail();
-                    saleDetail.setQuantity(requestDTO.getQuantity());
-                    saleDetail.setUnitPrice(requestDTO.getUnitPrice());
-                    saleDetail.setProduct(product);
-                    saleDetail.setSale(sale);
-                    return saleDetail;
-                }).toList();
+    private List<SaleDetail> mapSaleDetailFromDto(List<SaleDetailRequestDTO> detailRequestDTOS, Sale sale) {
+        return mapSaleDetailFromDto(detailRequestDTOS, sale, null);
     }
 
-    private Product findProductById(Long id) throws RuntimeException{
-        return productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+    private List<SaleDetail> mapSaleDetailFromDto(List<SaleDetailRequestDTO> detailRequestDTOS, Sale sale, Map<Long, SaleDetail> existingDetailsMap) {
+        List<Long> productIds = detailRequestDTOS.stream()
+                .map(SaleDetailRequestDTO::getProductId)
+                .toList();
+
+        Map<Long, Product> productsMap = productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        return detailRequestDTOS.stream()
+                .map(dto -> {
+                    Product product = productsMap.get(dto.getProductId());
+                    if (product == null) {
+                        // non-existent product
+                        throw new ResourceNotFoundException("Product not found with id: " + dto.getProductId());
+                    }
+
+                    SaleDetail saleDetail;
+                    if (dto.getId() != null) {
+                        //verify if it belongs to the sale
+                        if (existingDetailsMap == null || !existingDetailsMap.containsKey(dto.getId())) {
+                            throw new ResourceNotFoundException("In this sale, there is no sale detail with id: " + dto.getId());
+                        }
+                        // update detail
+                        saleDetail = existingDetailsMap.get(dto.getId());
+                    } else {
+                        // create new detail
+                        saleDetail = new SaleDetail();
+                        saleDetail.setSale(sale);
+                    }
+                    saleDetail.setQuantity(dto.getQuantity());
+                    saleDetail.setUnitPrice(dto.getUnitPrice());
+                    saleDetail.setProduct(product);
+                    return saleDetail;
+                })
+                .toList();
     }
 }
