@@ -26,6 +26,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
+    // Insufficient stock for a product
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<Map<String, Object>> handleInsufficientStock(InsufficientStockException ex){
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", "Insufficient Stock");
+        body.put("message", ex.getMessage());
+        body.put("productId", ex.getProductId());
+        body.put("requestedQuantity", ex.getRequestQuantity());
+        body.put("availableStock", ex.getAvailableStock());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     // Validation errors in DTOs (RequestBody with @Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex){

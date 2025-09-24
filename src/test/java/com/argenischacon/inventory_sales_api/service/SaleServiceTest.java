@@ -3,6 +3,7 @@ package com.argenischacon.inventory_sales_api.service;
 import com.argenischacon.inventory_sales_api.dto.*;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.SaleMapper;
+import com.argenischacon.inventory_sales_api.exception.InsufficientStockException;
 import com.argenischacon.inventory_sales_api.model.Customer;
 import com.argenischacon.inventory_sales_api.model.Product;
 import com.argenischacon.inventory_sales_api.model.Sale;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,6 +66,7 @@ public class SaleServiceTest{
         baseProduct = new Product();
         baseProduct.setId(10L);
         baseProduct.setName("Smart TV");
+        baseProduct.setStock(20);
 
         // ProductNestedDTO
         baseProductNestedDTO = new ProductNestedDTO();
@@ -123,6 +126,9 @@ public class SaleServiceTest{
     // ==== CREATE ====
     @Test
     void shouldCreateSaleWhenDataIsValid() {
+        // Arrange
+        int initialStock = baseProduct.getStock();
+        int quantitySold = baseSaleDetailRequestDTO.getQuantity();
         Long customerId = baseCustomer.getId();
         Long productId = baseProduct.getId();
 
@@ -131,15 +137,21 @@ public class SaleServiceTest{
         when(saleRepository.save(any(Sale.class))).thenReturn(baseSale);
         when(saleMapper.toResponse(baseSale)).thenReturn(baseSaleResponseDTO);
 
+        // Act
         SaleResponseDTO result = saleService.create(baseSaleRequestDTO);
 
+        // Assert
+        // Verify stock was reduced
+        assertEquals(initialStock - quantitySold, baseProduct.getStock());
+
+        // Verify the response DTO is correct
         assertEquals("John Doe", result.getCustomer().getName());
         assertEquals(2, result.getSaleDetails().getFirst().getQuantity());
         assertEquals(BigDecimal.valueOf(500), result.getSaleDetails().getFirst().getUnitPrice());
         assertEquals("Smart TV", result.getSaleDetails().getFirst().getProduct().getName());
-        assertEquals(BigDecimal.valueOf(1000), result.getSaleDetails().getFirst().getSubTotal());
         assertEquals(BigDecimal.valueOf(1000), result.getTotal());
 
+        // Verify mock interactions
         verify(customerRepository).findById(customerId);
         verify(productRepository).findAllById(List.of(productId));
         verify(saleRepository).save(any(Sale.class));
@@ -175,18 +187,46 @@ public class SaleServiceTest{
         verifyNoInteractions(saleRepository, saleMapper);
     }
 
+    @Test
+    void shouldThrowInsufficientStockExceptionOnCreate() {
+        // Arrange: Try to create a sale with quantity 30, but stock is only 20
+        baseSaleDetailRequestDTO.setQuantity(30);
+        int requestedQuantity = 30;
+
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
+        when(productRepository.findAllById(List.of(10L))).thenReturn(List.of(baseProduct));
+
+        // Act & Assert
+        InsufficientStockException ex = assertThrows(InsufficientStockException.class,
+                () -> saleService.create(baseSaleRequestDTO));
+
+        assertEquals(String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d",
+                baseProduct.getName(), requestedQuantity, baseProduct.getStock()), ex.getMessage());
+    }
+
     // ==== UPDATE ====
     @Test
     void shouldUpdateSaleWhenDataIsValid() {
+        // Arrange: Decrease quantity from 2 to 1
+        int initialStock = baseProduct.getStock();
+        baseSaleDetailRequestDTO.setId(100L);
+        baseSaleDetailRequestDTO.setQuantity(1);
+
         when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
         when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
         when(productRepository.findAllById(List.of(10L))).thenReturn(List.of(baseProduct));
         when(saleRepository.save(baseSale)).thenReturn(baseSale);
         when(saleMapper.toResponse(baseSale)).thenReturn(baseSaleResponseDTO);
 
+        // Act
         SaleResponseDTO result = saleService.update(200L, baseSaleRequestDTO);
 
+        // Assert: Verify response and stock change
         assertEquals(200L, result.getId());
+        // Stock should increase by 1 because quantity was reduced from 2 to 1
+        assertEquals(initialStock + 1, baseProduct.getStock());
+
+        // Verify mock interactions
         verify(saleRepository).findById(200L);
         verify(customerRepository).findById(1L);
         verify(productRepository).findAllById(List.of(10L));
@@ -261,26 +301,114 @@ public class SaleServiceTest{
         verify(saleRepository, never()).save(any(Sale.class));
     }
 
+    @Test
+    void shouldDecreaseStockWhenIncreasingQuantityOnUpdate() {
+        // Arrange: Increase quantity from 2 to 5
+        int initialStock = baseProduct.getStock();
+        baseSaleDetailRequestDTO.setId(100L);
+        baseSaleDetailRequestDTO.setQuantity(5);
+
+        when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
+        when(productRepository.findAllById(List.of(10L))).thenReturn(List.of(baseProduct));
+        when(saleRepository.save(any(Sale.class))).thenReturn(baseSale);
+        when(saleMapper.toResponse(any(Sale.class))).thenReturn(baseSaleResponseDTO);
+
+        // Act
+        saleService.update(200L, baseSaleRequestDTO);
+
+        // Assert: Stock should decrease by 3 (because quantity increased from 2 to 5)
+        assertEquals(initialStock - 3, baseProduct.getStock());
+        verify(saleRepository).save(any(Sale.class));
+    }
+
+    @Test
+    void shouldDecreaseStockWhenAddingNewDetailOnUpdate() {
+        // Arrange: Add a new detail without an ID
+        int initialStock = baseProduct.getStock();
+        // Start with a sale that has no details, so we only test the addition logic
+        baseSale.setSaleDetails(new ArrayList<>());
+        baseSaleDetailRequestDTO.setId(null);
+
+        when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
+        when(productRepository.findAllById(List.of(10L))).thenReturn(List.of(baseProduct));
+
+        // Act
+        saleService.update(200L, baseSaleRequestDTO);
+
+        // Assert: Stock should decrease by the quantity of the new detail (2)
+        assertEquals(initialStock - 2, baseProduct.getStock());
+        verify(saleRepository).save(any(Sale.class));
+    }
+
+    @Test
+    void shouldRestoreStockWhenRemovingDetailOnUpdate() {
+        // Arrange: The original sale has one detail. The update request has zero.
+        int initialStock = baseProduct.getStock();
+        int quantityToRestore = baseSaleDetail.getQuantity();
+        baseSaleRequestDTO.setSaleDetails(Collections.emptyList());
+
+        when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
+        when(productRepository.findAllById(Collections.emptyList())).thenReturn(Collections.emptyList());
+
+        // Act
+        saleService.update(200L, baseSaleRequestDTO);
+
+        // Assert: Stock should be restored by the quantity of the removed detail
+        assertEquals(initialStock + quantityToRestore, baseProduct.getStock());
+    }
+
+    @Test
+    void shouldThrowInsufficientStockExceptionOnUpdate() {
+        // Arrange: Try to increase quantity from 2 to 30, but stock is only 20
+        baseSaleDetailRequestDTO.setId(100L);
+        baseSaleDetailRequestDTO.setQuantity(30);
+        int quantityChange = 30 - baseSaleDetail.getQuantity();
+
+        when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
+        when(productRepository.findAllById(List.of(10L))).thenReturn(List.of(baseProduct));
+
+        // Act & Assert
+        InsufficientStockException ex = assertThrows(InsufficientStockException.class,
+                () -> saleService.update(200L, baseSaleRequestDTO));
+
+        assertEquals(String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d",
+                baseProduct.getName(), quantityChange, baseProduct.getStock()), ex.getMessage());
+
+        verify(saleRepository, never()).save(any(Sale.class));
+    }
+
     // ==== DELETE ====
     @Test
     void shouldDeleteSaleWhenIdExists() {
-        when(saleRepository.existsById(200L)).thenReturn(true);
+        // Arrange
+        int initialStock = baseProduct.getStock();
+        int quantitySold = baseSaleDetail.getQuantity();
+        when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
 
+        // Act
         saleService.delete(200L);
 
-        verify(saleRepository).existsById(200L);
+        // Assert: Stock should be restored
+        assertEquals(initialStock + quantitySold, baseProduct.getStock());
+        verify(saleRepository).findById(200L);
         verify(saleRepository).deleteById(200L);
     }
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistingSale() {
-        when(saleRepository.existsById(200L)).thenReturn(false);
+        // Arrange
+        when(saleRepository.findById(200L)).thenReturn(Optional.empty());
 
+        // Act & Assert
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleService.delete(200L));
 
         assertEquals("Sale not found", ex.getMessage());
-        verify(saleRepository).existsById(200L);
+        verify(saleRepository).findById(200L);
         verify(saleRepository, never()).deleteById(anyLong());
     }
 

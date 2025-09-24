@@ -3,6 +3,7 @@ package com.argenischacon.inventory_sales_api.service;
 import com.argenischacon.inventory_sales_api.dto.SaleDetailRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.SaleRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.SaleResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.InsufficientStockException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.SaleMapper;
 import com.argenischacon.inventory_sales_api.model.Customer;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -61,6 +64,19 @@ public class SaleServiceImpl implements SaleService {
                 .stream()
                 .collect(Collectors.toMap(SaleDetail::getId, Function.identity()));
 
+        Set<Long> incomingDetailIds = dto.getSaleDetails().stream()
+                .map(SaleDetailRequestDTO::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        existingSaleDetails.values().stream()
+                .filter(detail -> !incomingDetailIds.contains(detail.getId()))
+                .forEach(detailToRemove -> {
+                    //Restore stock by adding the quantity back
+                    updateStock(detailToRemove.getProduct(), detailToRemove.getQuantity());
+                });
+
+
         List<SaleDetail> saleDetails = mapSaleDetailFromDto(dto.getSaleDetails(), sale, existingSaleDetails);
 
         sale.getSaleDetails().clear();
@@ -70,10 +86,14 @@ public class SaleServiceImpl implements SaleService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
-        if (!saleRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Sale not found");
-        }
+        Sale sale = saleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
+
+        //Restore stock for each product in the sale
+        sale.getSaleDetails().forEach(detail -> updateStock(detail.getProduct(), detail.getQuantity()));
+
         saleRepository.deleteById(id);
     }
 
@@ -88,6 +108,18 @@ public class SaleServiceImpl implements SaleService {
     @Override
     public List<SaleResponseDTO> findAll() {
         return saleMapper.toResponseList(saleRepository.findAll());
+    }
+
+    private void updateStock(Product product, Integer quantityChange) {
+        int newStock = product.getStock() + quantityChange;
+        if (newStock < 0) {
+            int requested = -quantityChange;
+            int available = product.getStock();
+            String message = String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d",
+                    product.getName(), requested, available);
+            throw new InsufficientStockException(message, product.getId(), requested, available);
+        }
+        product.setStock(newStock);
     }
 
     private List<SaleDetail> mapSaleDetailFromDto(List<SaleDetailRequestDTO> detailRequestDTOS, Sale sale) {
@@ -111,6 +143,8 @@ public class SaleServiceImpl implements SaleService {
                     }
 
                     SaleDetail saleDetail;
+                    int quantityChange = dto.getQuantity();
+
                     if (dto.getId() != null) {
                         //verify if it belongs to the sale
                         if (existingDetailsMap == null || !existingDetailsMap.containsKey(dto.getId())) {
@@ -118,11 +152,15 @@ public class SaleServiceImpl implements SaleService {
                         }
                         // update detail
                         saleDetail = existingDetailsMap.get(dto.getId());
+                        quantityChange = dto.getQuantity() - saleDetail.getQuantity();
                     } else {
                         // create new detail
                         saleDetail = new SaleDetail();
                         saleDetail.setSale(sale);
                     }
+
+                    // Check and update stock
+                    updateStock(product, -quantityChange); // Negative  to decrease stock
                     saleDetail.setQuantity(dto.getQuantity());
                     saleDetail.setUnitPrice(dto.getUnitPrice());
                     saleDetail.setProduct(product);
