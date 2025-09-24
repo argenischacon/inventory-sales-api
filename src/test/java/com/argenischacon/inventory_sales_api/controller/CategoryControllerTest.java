@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -185,6 +186,18 @@ public class CategoryControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].name").value("Electronics"))
                 .andExpect(jsonPath("$[0].description").value("Electronic devices"));
+
+        verify(categoryService).findAll();
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/categories -> 200 OK (Empty List)")
+    void getAllCategoriesEmpty() throws Exception {
+        when(categoryService.findAll()).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/v1/categories"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
 
         verify(categoryService).findAll();
     }

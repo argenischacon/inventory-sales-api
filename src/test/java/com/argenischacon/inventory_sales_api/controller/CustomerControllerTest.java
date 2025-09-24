@@ -17,6 +17,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -196,6 +197,18 @@ public class CustomerControllerTest {
                 .andExpect(jsonPath("$[0].lastName").value("Doe"));
 
         verify(customerService, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/customers -> 200 OK (Empty List)")
+    void getAllCustomersEmpty() throws Exception {
+        when(customerService.findAll()).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/v1/customers"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+
+        verify(customerService).findAll();
     }
 
     // ==== INTERNAL SERVER ERROR ====

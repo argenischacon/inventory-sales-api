@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -101,6 +102,22 @@ public class ProductControllerTest {
 
         verifyNoInteractions(productService);
     }
+    @Test
+    @DisplayName("POST /api/v1/products -> 404 Not Found (Category not found)")
+    void createProductCategoryNotFound() throws Exception {
+        long nonExistentCategoryId = 999L;
+        baseProductRequestDTO.setCategoryId(nonExistentCategoryId);
+
+        when(productService.create(any(ProductRequestDTO.class)))
+                .thenThrow(new ResourceNotFoundException("Category not found"));
+
+        mockMvc.perform(post("/api/v1/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(baseProductRequestDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Category not found"));
+        verify(productService, times(1)).create(any(ProductRequestDTO.class));
+    }
 
     // ==== PUT ====
     @Test
@@ -151,6 +168,25 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$.message").value("Product not found"));
 
         verify(productService, times(1)).update(eq(1L), any(ProductRequestDTO.class));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/products/{id} -> 404 Not Found (Category not found on update)")
+    void updateProductCategoryNotFound() throws Exception {
+        long productId = 1L;
+        long nonExistentCategoryId = 999L;
+        baseProductRequestDTO.setCategoryId(nonExistentCategoryId);
+
+        when(productService.update(eq(productId), any(ProductRequestDTO.class)))
+                .thenThrow(new ResourceNotFoundException("Category not found"));
+
+        mockMvc.perform(put("/api/v1/products/{id}", productId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(baseProductRequestDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Category not found"));
+
+        verify(productService, times(1)).update(eq(productId), any(ProductRequestDTO.class));
     }
 
     // ==== DELETE ====
@@ -221,6 +257,18 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$[0].unitPrice").value(1200.00))
                 .andExpect(jsonPath("$[0].stock").value(50))
                 .andExpect(jsonPath("$[0].category.id").value(2L));
+
+        verify(productService, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/products -> 200 OK (Empty List)")
+    void getAllProductsEmpty() throws Exception {
+        when(productService.findAll()).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/v1/products"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
 
         verify(productService, times(1)).findAll();
     }

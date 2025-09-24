@@ -17,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -79,6 +80,19 @@ public class SaleDetailControllerTest {
                 .andExpect(jsonPath("$.message").value("Sale not found"));
 
         verify(saleDetailService, times(1)).findBySaleId(eq(5L));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/sale-details/{saleId} -> 200 OK (Empty List)")
+    void getSaleDetailsBySaleIdEmpty() throws Exception {
+        Long saleId = 5L;
+        when(saleDetailService.findBySaleId(eq(saleId))).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/v1/sale-details/{saleId}", saleId))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+
+        verify(saleDetailService, times(1)).findBySaleId(eq(saleId));
     }
 
     // ==== INTERNAL SERVER ERROR ====
