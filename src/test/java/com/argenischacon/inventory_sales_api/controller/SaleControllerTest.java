@@ -101,7 +101,7 @@ public class SaleControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequestDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.saleDetails").value("Must have at least one sale detail"));
+                .andExpect(jsonPath("$.details.saleDetails").value("Must have at least one sale detail"));
 
         verifyNoInteractions(saleService);
     }
@@ -218,7 +218,7 @@ public class SaleControllerTest {
         mockMvc.perform(get("/api/v1/sales/{id}", 1L))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Unexpected error"))
+                .andExpect(jsonPath("$.message").value("An unexpected internal server error occurred"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verify(saleService).findById(eq(1L));

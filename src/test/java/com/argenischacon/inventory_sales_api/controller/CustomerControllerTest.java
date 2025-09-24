@@ -84,7 +84,7 @@ public class CustomerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequestDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.lastName").value("Last name is required"));
+                .andExpect(jsonPath("$.details.lastName").value("Last name is required"));
 
         verifyNoInteractions(customerService);
     }
@@ -208,7 +208,7 @@ public class CustomerControllerTest {
         mockMvc.perform(get("/api/v1/customers/{id}", 1L))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Unexpected error"))
+                .andExpect(jsonPath("$.message").value("An unexpected internal server error occurred"))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 }

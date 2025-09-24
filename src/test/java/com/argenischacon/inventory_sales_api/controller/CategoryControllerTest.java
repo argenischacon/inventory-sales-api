@@ -82,7 +82,7 @@ public class CategoryControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.name").value("Name is required"));
+                .andExpect(jsonPath("$.details.name").value("Name is required"));
 
         verifyNoInteractions(categoryService);
     }
@@ -199,7 +199,7 @@ public class CategoryControllerTest {
         mockMvc.perform(get("/api/v1/categories/{id}", 1L))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Unexpected error"))
+                .andExpect(jsonPath("$.message").value("An unexpected internal server error occurred"))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 

@@ -17,61 +17,91 @@ public class GlobalExceptionHandler {
 
     // Resource not found in DB
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<?> handleResourceNotFound(ResourceNotFoundException ex){
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.NOT_FOUND.value());
-        body.put("error", "Resource not found");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex){
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, status);
     }
 
-    // Insufficient stock for a product
+    //Insufficient stock
     @ExceptionHandler(InsufficientStockException.class)
-    public ResponseEntity<Map<String, Object>> handleInsufficientStock(InsufficientStockException ex){
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.CONFLICT.value());
-        body.put("error", "Insufficient Stock");
-        body.put("message", ex.getMessage());
-        body.put("productId", ex.getProductId());
-        body.put("requestedQuantity", ex.getRequestQuantity());
-        body.put("availableStock", ex.getAvailableStock());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    public ResponseEntity<ErrorResponse> handleInsufficientStock(InsufficientStockException ex){
+        HttpStatus status = HttpStatus.CONFLICT;
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .details(Map.of(
+                        "productId", ex.getProductId(),
+                        "requestQuantity", ex.getRequestQuantity(),
+                        "availableStock", ex.getAvailableStock()
+                ))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 
     // Validation errors in DTOs (RequestBody with @Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex){
-        Map<String, String> errors = new HashMap<>();
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex){
+        Map<String, Object> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String field = ((FieldError) error).getField();
             String message = error.getDefaultMessage();
             errors.put(field, message);
         });
-        return ResponseEntity.badRequest().body(errors);
+
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message("Validation failed")
+                .details(errors)
+                .build();
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 
     // Simple parameter validation errors (@RequestParam, @PathVariable)
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex){
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex){
         Map<String, Object> errors = new HashMap<>();
         ex.getConstraintViolations().forEach(cv -> {
             String field = cv.getPropertyPath().toString();
             String message = cv.getMessage();
             errors.put(field, message);
         });
-        return ResponseEntity.badRequest().body(errors);
+
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message("Constraint violation")
+                .details(errors)
+                .build();
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 
     // Global handling of any uncontrolled exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex){
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                ex.getMessage(),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.internalServerError().body(errorResponse);
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message("An unexpected internal server error occurred") //generic message
+                .build();
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 }
