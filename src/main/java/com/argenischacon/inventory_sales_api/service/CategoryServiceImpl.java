@@ -2,6 +2,8 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CategoryRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CategoryResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.DuplicateResourceException;
+import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CategoryMapper;
 import com.argenischacon.inventory_sales_api.model.Category;
@@ -33,10 +35,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void delete(Long id) {
-        if (!categoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Category not found");
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        if (!category.getProducts().isEmpty()) {
+            throw new ResourceInUseException("Cannot delete category with associated products");
         }
-        categoryRepository.deleteById(id);
+
+        categoryRepository.delete(category);
     }
 
     @Override

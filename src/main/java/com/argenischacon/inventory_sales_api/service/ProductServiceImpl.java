@@ -2,6 +2,7 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.ProductRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.ProductMapper;
 import com.argenischacon.inventory_sales_api.model.Category;
@@ -49,10 +50,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void delete(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Product not found");
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        if (!product.getSaleDetails().isEmpty()) {
+            throw new ResourceInUseException("Cannot delete product with associated sales");
         }
-        productRepository.deleteById(id);
+        productRepository.delete(product);
     }
 
     @Override

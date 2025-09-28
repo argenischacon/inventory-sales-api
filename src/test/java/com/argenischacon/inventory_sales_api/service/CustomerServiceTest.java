@@ -2,9 +2,11 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CustomerRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CustomerMapper;
 import com.argenischacon.inventory_sales_api.model.Customer;
+import com.argenischacon.inventory_sales_api.model.Sale;
 import com.argenischacon.inventory_sales_api.repository.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -109,22 +112,42 @@ public class CustomerServiceTest {
     // ==== DELETE =====
     @Test
     void shouldDeleteCustomerWhenIdExists() {
-        when(customerRepository.existsById(1L)).thenReturn(true);
-        doNothing().when(customerRepository).deleteById(1L);
+        // Arrange
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
+        doNothing().when(customerRepository).delete(baseCustomer);
 
+        // Act & Assert
         customerService.delete(1L);
 
-        verify(customerRepository, times(1)).deleteById(1L);
+        verify(customerRepository, times(1)).delete(baseCustomer);
     }
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistingCustomer() {
-        when(customerRepository.existsById(1L)).thenReturn(false);
+        // Arrange
+        when(customerRepository.findById(1L)).thenReturn(Optional.empty());
 
+        // Act & Assert
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> customerService.delete(1L));
 
         assertEquals("Customer not found", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingCustomerWithAssociatedSales() {
+        // Arrange
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
+        Sale sale = new Sale();
+        sale.setId(5L);
+        sale.setCustomer(baseCustomer);
+        baseCustomer.setSales(Set.of(sale));
+
+        // Act & Assert
+        ResourceInUseException ex = assertThrows(ResourceInUseException.class,
+                () -> customerService.delete(1L));
+
+        assertEquals("Cannot delete customer with associated sales", ex.getMessage());
     }
 
     // ==== FIND BY ID =====

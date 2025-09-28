@@ -2,9 +2,11 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CategoryRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CategoryResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CategoryMapper;
 import com.argenischacon.inventory_sales_api.model.Category;
+import com.argenischacon.inventory_sales_api.model.Product;
 import com.argenischacon.inventory_sales_api.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +15,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -113,22 +118,43 @@ public class CategoryServiceTest {
     // ==== DELETE ====
     @Test
     void shouldDeleteCategoryWhenIdExists() {
-        when(categoryRepository.existsById(1L)).thenReturn(true);
-        doNothing().when(categoryRepository).deleteById(1L);
+        // Arrange
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(baseCategory));
+        doNothing().when(categoryRepository).delete(baseCategory);
 
+        // Act & Assert
         categoryService.delete(1L);
 
-        verify(categoryRepository, times(1)).deleteById(1L);
+        verify(categoryRepository, times(1)).delete(baseCategory);
     }
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistingCategory() {
-        when(categoryRepository.existsById(1L)).thenReturn(false);
+        // Arrange
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
+        // Act & Assert
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> categoryService.delete(1L));
 
         assertEquals("Category not found", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingCategoryWithAssociatedProducts() {
+        // Arrange
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(baseCategory));
+        Product product = new Product();
+        product.setId(5L);
+        product.setName("Smart TV");
+        baseCategory.setProducts(Set.of(product));
+
+        // Act & Assert
+        ResourceInUseException ex = assertThrows(ResourceInUseException.class,
+                () -> categoryService.delete(1L));
+
+        assertEquals("Cannot delete category with associated products", ex.getMessage());
+
     }
 
     // ==== FIND BY ID ====

@@ -3,10 +3,12 @@ package com.argenischacon.inventory_sales_api.service;
 import com.argenischacon.inventory_sales_api.dto.CategoryNestedDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.ProductMapper;
 import com.argenischacon.inventory_sales_api.model.Category;
 import com.argenischacon.inventory_sales_api.model.Product;
+import com.argenischacon.inventory_sales_api.model.SaleDetail;
 import com.argenischacon.inventory_sales_api.repository.CategoryRepository;
 import com.argenischacon.inventory_sales_api.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -210,21 +212,41 @@ public class ProductServiceTest {
     // ==== DELETE ====
     @Test
     void shouldDeleteProductWhenIdExists() {
-        when(productRepository.existsById(1L)).thenReturn(true);
+        // Arrange
+        when(productRepository.findById(1L)).thenReturn(Optional.of(baseProduct));
 
+        // Act & Assert
         productService.delete(1L);
 
-        verify(productRepository, times(1)).deleteById(1L);
+        verify(productRepository, times(1)).delete(baseProduct);
     }
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistingProduct() {
-        when(productRepository.existsById(1L)).thenReturn(false);
+        // Arrange
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
+        // Act & Assert
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.delete(1L));
 
         assertEquals("Product not found", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingProductWithAssociatedSales() {
+        // Arrange
+        when(productRepository.findById(1L)).thenReturn(Optional.of(baseProduct));
+        SaleDetail saleDetail = new SaleDetail();
+        saleDetail.setId(5L);
+        saleDetail.setProduct(baseProduct);
+        baseProduct.setSaleDetails(List.of(saleDetail));
+
+        // Act & Assert
+        ResourceInUseException ex = assertThrows(ResourceInUseException.class, () ->
+                productService.delete(1L));
+
+        assertEquals("Cannot delete product with associated sales", ex.getMessage());
     }
 
     // ==== FIND BY ID ====

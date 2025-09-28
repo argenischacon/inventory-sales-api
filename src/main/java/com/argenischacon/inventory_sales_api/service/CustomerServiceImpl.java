@@ -2,6 +2,7 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CustomerRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CustomerMapper;
 import com.argenischacon.inventory_sales_api.model.Customer;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CustomerServiceImpl implements CustomerService{
+public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 
@@ -33,10 +34,14 @@ public class CustomerServiceImpl implements CustomerService{
 
     @Override
     public void delete(Long id) {
-        if(!customerRepository.existsById(id)){
-            throw new ResourceNotFoundException("Customer not found");
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        if (!customer.getSales().isEmpty()) {
+            throw new ResourceInUseException("Cannot delete customer with associated sales");
         }
-        customerRepository.deleteById(id);
+
+        customerRepository.delete(customer);
     }
 
     @Override
