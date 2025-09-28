@@ -2,8 +2,9 @@ package com.argenischacon.inventory_sales_api.repository;
 
 import com.argenischacon.inventory_sales_api.model.Sale;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.history.RevisionRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SaleRepository extends JpaRepository<Sale, Long> {
+public interface SaleRepository extends JpaRepository<Sale, Long>, RevisionRepository<Sale, Long, Integer> {
 }
