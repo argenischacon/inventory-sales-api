@@ -1,5 +1,6 @@
 package com.argenischacon.inventory_sales_api.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -16,5 +17,6 @@ public class SaleRequestDTO {
     private Long customerId;
 
     @NotEmpty(message = "Must have at least one sale detail")
+    @Valid
     private List<SaleDetailRequestDTO> saleDetails;
 }
