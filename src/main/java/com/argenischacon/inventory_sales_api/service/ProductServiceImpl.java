@@ -2,6 +2,7 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.ProductRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.DuplicateResourceException;
 import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.ProductMapper;
@@ -28,6 +29,11 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDTO create(ProductRequestDTO dto) {
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        if (productRepository.existsByName(dto.getName())) {
+            throw new DuplicateResourceException("A product with the name '" + dto.getName() + "' already exists.");
+        }
+
         Product product = productMapper.toEntity(dto);
         product.setCategory(category);
         return productMapper.toResponse(productRepository.save(product));
@@ -38,6 +44,13 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDTO update(Long id, ProductRequestDTO dto) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        productRepository.findByName(dto.getName()).ifPresent(existingProduct -> {
+            if (!existingProduct.getId().equals(id)) {
+                throw new DuplicateResourceException("A product with the name '" + dto.getName() + "' already exists.");
+            }
+        });
+
         productMapper.updateEntityFromDto(dto, entity);
 
         if (!Objects.equals(dto.getCategoryId(), entity.getCategory().getId())) {

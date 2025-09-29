@@ -2,6 +2,7 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CategoryRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CategoryResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.DuplicateResourceException;
 import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CategoryMapper;
@@ -73,6 +74,19 @@ public class CategoryServiceTest {
         verify(categoryRepository, times(1)).save(baseCategory);
     }
 
+    @Test
+    void shouldThrowExceptionWhenCreatingCategoryWithDuplicateName() {
+        // Arrange
+        when(categoryRepository.existsByName("Electronics")).thenReturn(true);
+
+        // Act & Assert
+        DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
+                () -> categoryService.create(baseRequestDTO));
+
+        assertEquals("A category with the name 'Electronics' already exists.", ex.getMessage());
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
+
 
     // ==== UPDATE ====
     @Test
@@ -113,6 +127,27 @@ public class CategoryServiceTest {
                 () -> categoryService.update(1L, new CategoryRequestDTO()));
 
         assertEquals("Category not found", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingCategoryWithDuplicateName() {
+        // Arrange: Update category with an existing category name
+        CategoryRequestDTO updatingRequestDTO = new CategoryRequestDTO();
+        updatingRequestDTO.setName("Books");
+
+        Category existingCategoryWithSameName = new Category();
+        existingCategoryWithSameName.setId(2L);
+        existingCategoryWithSameName.setName("Books");
+
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(baseCategory));
+        when(categoryRepository.findByName("Books")).thenReturn(Optional.of(existingCategoryWithSameName));
+
+        // Act & Assert
+        DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
+                () -> categoryService.update(1L, updatingRequestDTO));
+
+        assertEquals("A category with the name 'Books' already exists.", ex.getMessage());
+        verify(categoryRepository, never()).save(any(Category.class));
     }
 
     // ==== DELETE ====

@@ -2,6 +2,7 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CustomerRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.DuplicateResourceException;
 import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CustomerMapper;
@@ -20,6 +21,9 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerResponseDTO create(CustomerRequestDTO dto) {
+        if (customerRepository.existsByDni(dto.getDni())) {
+            throw new DuplicateResourceException("A customer with the DNI '" + dto.getDni() + "' already exists.");
+        }
         Customer entity = customerMapper.toEntity(dto);
         return customerMapper.toResponse(customerRepository.save(entity));
     }
@@ -28,6 +32,13 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponseDTO update(Long id, CustomerRequestDTO dto) {
         Customer entity = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        customerRepository.findByDni(dto.getDni()).ifPresent(existingCustomer -> {
+            if (!existingCustomer.getId().equals(id)) {
+                throw new DuplicateResourceException("A customer with the DNI '" + dto.getDni() + "' already exists.");
+            }
+        });
+
         customerMapper.updateEntityFromDto(dto, entity);
         return customerMapper.toResponse(customerRepository.save(entity));
     }

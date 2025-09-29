@@ -1,6 +1,7 @@
 package com.argenischacon.inventory_sales_api.exception;
 
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -56,6 +57,38 @@ public class GlobalExceptionHandler {
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    // A resource with the same unique identifier already exists
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResource(DuplicateResourceException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    // Safety net for database integrity violations (e.g., foreign key constraints)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        HttpStatus status = HttpStatus.CONFLICT; // 409
+
+        // Generic but safe message
+        String message = "The operation could not be completed due to a data conflict. This may be because a referenced item does not exist.";
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(message)
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);

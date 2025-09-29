@@ -3,6 +3,7 @@ package com.argenischacon.inventory_sales_api.service;
 import com.argenischacon.inventory_sales_api.dto.CategoryNestedDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.DuplicateResourceException;
 import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.ProductMapper;
@@ -100,6 +101,20 @@ public class ProductServiceTest {
         assertEquals("Electronics", result.getCategory().getName());
 
         verify(productRepository, times(1)).save(baseProduct);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCreatingProductWithDuplicateName() {
+        // Arrange
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(baseCategory));
+        when(productRepository.existsByName("Smart TV")).thenReturn(true);
+
+        // Act & Assert
+        DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
+                () -> productService.create(baseProductRequestDTO));
+
+        assertEquals("A product with the name 'Smart TV' already exists.", ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
     }
 
     @Test
@@ -207,6 +222,27 @@ public class ProductServiceTest {
             entity.setDescription(dto.getDescription());
             return null;
         }).when(productMapper).updateEntityFromDto(updatingRequestDTO, baseProduct);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingProductWithDuplicateName() {
+        // Arrange: Update product with an existing product name
+        ProductRequestDTO updatingRequestDTO = new ProductRequestDTO();
+        updatingRequestDTO.setName("Mouse");
+
+        Product existingProductWithSameName = new Product();
+        existingProductWithSameName.setId(2L);
+        existingProductWithSameName.setName("Mouse");
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(baseProduct));
+        when(productRepository.findByName("Mouse")).thenReturn(Optional.of(existingProductWithSameName));
+
+        // Act & Assert
+        DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
+                () -> productService.update(1L, updatingRequestDTO));
+
+        assertEquals("A product with the name 'Mouse' already exists.", ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
     }
 
     // ==== DELETE ====

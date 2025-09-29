@@ -21,6 +21,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponseDTO create(CategoryRequestDTO dto) {
+        if(categoryRepository.existsByName(dto.getName())){
+            throw new DuplicateResourceException("A category with the name '" + dto.getName() + "' already exists.");
+        }
         Category category = categoryMapper.toEntity(dto);
         return categoryMapper.toResponse(categoryRepository.save(category));
     }
@@ -29,6 +32,12 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDTO update(Long id, CategoryRequestDTO dto) {
         Category entity = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        categoryRepository.findByName(dto.getName()).ifPresent(existingCategory -> {
+            if(!existingCategory.getId().equals(id)){
+                throw new DuplicateResourceException("A category with the name '" + dto.getName() + "' already exists.");
+            }
+        });
         categoryMapper.updateEntityFromDto(dto, entity);
         return categoryMapper.toResponse(categoryRepository.save(entity));
     }

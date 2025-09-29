@@ -2,6 +2,7 @@ package com.argenischacon.inventory_sales_api.service;
 
 import com.argenischacon.inventory_sales_api.dto.CustomerRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CustomerResponseDTO;
+import com.argenischacon.inventory_sales_api.exception.DuplicateResourceException;
 import com.argenischacon.inventory_sales_api.exception.ResourceInUseException;
 import com.argenischacon.inventory_sales_api.exception.ResourceNotFoundException;
 import com.argenischacon.inventory_sales_api.mapper.CustomerMapper;
@@ -68,6 +69,19 @@ public class CustomerServiceTest {
         verify(customerRepository, times(1)).save(baseCustomer);
     }
 
+    @Test
+    void shouldThrowExceptionWhenCreatingCustomerWithDuplicateDni() {
+        // Arrange
+        when(customerRepository.existsByDni("12345678")).thenReturn(true);
+
+        // Act & Assert
+        DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
+                () -> customerService.create(baseRequestDTO));
+
+        assertEquals("A customer with the DNI '12345678' already exists.", ex.getMessage());
+        verify(customerRepository, never()).save(any(Customer.class));
+    }
+
     // ==== UPDATE =====
     @Test
     void shouldUpdateCustomerWhenIdExists() {
@@ -107,6 +121,27 @@ public class CustomerServiceTest {
         );
 
         assertEquals("Customer not found", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingCustomerWithDuplicateDni() {
+        // Arrange: Update customer with an existing DNI
+        CustomerRequestDTO updatingRequestDTO = new CustomerRequestDTO();
+        updatingRequestDTO.setDni("87654321B");
+
+        Customer existingCustomerWithSameDni = new Customer();
+        existingCustomerWithSameDni.setId(2L); // A different customer ID
+        existingCustomerWithSameDni.setDni("87654321B");
+
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(baseCustomer));
+        when(customerRepository.findByDni("87654321B")).thenReturn(Optional.of(existingCustomerWithSameDni));
+
+        // Act & Assert
+        DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
+                () -> customerService.update(1L, updatingRequestDTO));
+
+        assertEquals("A customer with the DNI '87654321B' already exists.", ex.getMessage());
+        verify(customerRepository, never()).save(any(Customer.class));
     }
 
     // ==== DELETE =====
