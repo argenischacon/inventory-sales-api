@@ -15,9 +15,11 @@ import java.math.BigDecimal;
 public class SaleDetailRequestDTO {
     private Long id; //(create -> null | update -> present)
 
+    @NotNull(message = "Quantity is required")
     @Positive(message = "Quantity must be a positive number")
     private Integer quantity;
 
+    @NotNull(message = "Unit price is required")
     @PositiveOrZero(message = "Unit price must not be negative")
     private BigDecimal unitPrice;
 
