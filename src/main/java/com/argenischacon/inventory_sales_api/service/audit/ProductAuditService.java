@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +37,10 @@ public class ProductAuditService {
                     CustomRevisionEntity revisionInfo = (CustomRevisionEntity) tuple[1];
                     RevisionType revType = (RevisionType) tuple[2];
 
+                    Long categoryId = Optional.ofNullable(productRev.getCategory())
+                                              .map(cat -> cat.getId())
+                                              .orElse(null);
+
                     return new ProductRevisionDTO(
                             Long.valueOf(revisionInfo.getId()),
                             revisionInfo.getUsername(),
@@ -46,7 +51,7 @@ public class ProductAuditService {
                             productRev.getDescription(),
                             productRev.getUnitPrice(),
                             productRev.getStock(),
-                            productRev.getCategory().getId()
+                            categoryId
                     );
                 })
                 .toList();

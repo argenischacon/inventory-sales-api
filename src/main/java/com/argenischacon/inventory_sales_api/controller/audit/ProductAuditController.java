@@ -22,11 +22,7 @@ public class ProductAuditController {
     @GetMapping("/{productId}/revisions")
     public ResponseEntity<List<ProductRevisionDTO>> getProductRevisions(@PathVariable Long productId) {
         List<ProductRevisionDTO> revisions = new ArrayList<>();
-        try {
-             revisions = productAuditService.getProductRevisions(productId);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-            return ResponseEntity.ok(revisions);
+        revisions = productAuditService.getProductRevisions(productId);
+        return ResponseEntity.ok(revisions);
     }
 }
