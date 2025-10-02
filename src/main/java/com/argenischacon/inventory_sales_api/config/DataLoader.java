@@ -16,11 +16,18 @@ public class DataLoader {
     CommandLineRunner load(UserRepository repo, PasswordEncoder passwordEncoder) {
         return args -> {
             if (repo.findByUsername("admin").isEmpty()) {
-                User user = new User();
-                user.setUsername("admin");
-                user.setPassword(passwordEncoder.encode("admin123"));
-                user.setRoles(Set.of(Role.ADMIN, Role.USER));
-                repo.save(user);
+                User adminUser = new User();
+                adminUser.setUsername("admin");
+                adminUser.setPassword(passwordEncoder.encode("admin123"));
+                adminUser.setRoles(Set.of(Role.ADMIN, Role.USER));
+                repo.save(adminUser);
+            }
+            if (repo.findByUsername("user").isEmpty()) {
+                User regularUser = new User();
+                regularUser.setUsername("user");
+                regularUser.setPassword(passwordEncoder.encode("user123"));
+                regularUser.setRoles(Set.of(Role.USER));
+                repo.save(regularUser);
             }
         };
     }
