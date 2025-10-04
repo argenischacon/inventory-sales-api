@@ -18,19 +18,18 @@ import java.util.Map;
 @Schema(description = "Standard structure for API error responses")
 public class ErrorResponse {
 
-    @Schema(description = "Timestamp when the error occurred", example = "2024-08-01T10:30:00.123456")
+    @Schema(description = "Timestamp when the error occurred")
     private LocalDateTime timestamp;
 
-    @Schema(description = "HTTP status code", example = "404")
+    @Schema(description = "HTTP status code")
     private int status;
 
-    @Schema(description = "HTTP status error reason phrase", example = "Not Found")
+    @Schema(description = "HTTP status error reason phrase")
     private String error;
 
-    @Schema(description = "A human-readable message providing details about the error", example = "Product not found")
+    @Schema(description = "A human-readable message providing details about the error")
     private String message;
 
-    @Schema(description = "A map containing additional details about the error, such as validation failures",
-            example = "{\"fieldName\": \"Error description\"}")
+    @Schema(description = "A map containing additional details about the error, such as validation failures")
     private Map<String, Object> details;
 }
