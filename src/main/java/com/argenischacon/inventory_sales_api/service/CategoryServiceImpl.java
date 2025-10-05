@@ -22,7 +22,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO create(CategoryRequestDTO dto) {
         if(categoryRepository.existsByName(dto.getName())){
-            throw new DuplicateResourceException("A category with the name '" + dto.getName() + "' already exists.");
+            throw new DuplicateResourceException("A category with the same name already exists.");
         }
         Category category = categoryMapper.toEntity(dto);
         return categoryMapper.toResponse(categoryRepository.save(category));
@@ -31,11 +31,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO update(Long id, CategoryRequestDTO dto) {
         Category entity = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found."));
 
         categoryRepository.findByName(dto.getName()).ifPresent(existingCategory -> {
             if(!existingCategory.getId().equals(id)){
-                throw new DuplicateResourceException("A category with the name '" + dto.getName() + "' already exists.");
+                throw new DuplicateResourceException("A category with the same name already exists.");
             }
         });
         categoryMapper.updateEntityFromDto(dto, entity);
@@ -45,10 +45,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void delete(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found."));
 
         if (!category.getProducts().isEmpty()) {
-            throw new ResourceInUseException("Cannot delete category with associated products");
+            throw new ResourceInUseException("Cannot delete category: it is associated with existing products.");
         }
 
         categoryRepository.delete(category);
@@ -57,7 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO findById(Long id) {
         Category entity = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found."));
         return categoryMapper.toResponse(entity);
     }
 

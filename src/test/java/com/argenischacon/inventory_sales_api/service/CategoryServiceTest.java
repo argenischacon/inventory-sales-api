@@ -83,7 +83,7 @@ public class CategoryServiceTest {
         DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
                 () -> categoryService.create(baseRequestDTO));
 
-        assertEquals("A category with the name 'Electronics' already exists.", ex.getMessage());
+        assertEquals("A category with the same name already exists.", ex.getMessage());
         verify(categoryRepository, never()).save(any(Category.class));
     }
 
@@ -126,7 +126,7 @@ public class CategoryServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> categoryService.update(1L, new CategoryRequestDTO()));
 
-        assertEquals("Category not found", ex.getMessage());
+        assertEquals("Category with id 1 not found.", ex.getMessage());
     }
 
     @Test
@@ -146,7 +146,7 @@ public class CategoryServiceTest {
         DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
                 () -> categoryService.update(1L, updatingRequestDTO));
 
-        assertEquals("A category with the name 'Books' already exists.", ex.getMessage());
+        assertEquals("A category with the same name already exists.", ex.getMessage());
         verify(categoryRepository, never()).save(any(Category.class));
     }
 
@@ -172,7 +172,7 @@ public class CategoryServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> categoryService.delete(1L));
 
-        assertEquals("Category not found", ex.getMessage());
+        assertEquals("Category with id 1 not found.", ex.getMessage());
     }
 
     @Test
@@ -188,7 +188,7 @@ public class CategoryServiceTest {
         ResourceInUseException ex = assertThrows(ResourceInUseException.class,
                 () -> categoryService.delete(1L));
 
-        assertEquals("Cannot delete category with associated products", ex.getMessage());
+        assertEquals("Cannot delete category: it is associated with existing products.", ex.getMessage());
 
     }
 
@@ -211,7 +211,7 @@ public class CategoryServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> categoryService.findById(1L));
 
-        assertEquals("Category not found", ex.getMessage());
+        assertEquals("Category with id 1 not found.", ex.getMessage());
     }
 
     // ==== FIND ALL ====

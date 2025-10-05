@@ -112,14 +112,15 @@ public class CategoryControllerTest {
     @DisplayName("PUT /api/v1/categories/{id} -> 404 Not Found")
     void updateCategoryNotFound() throws Exception {
         CategoryRequestDTO requestDTO = new CategoryRequestDTO("Sports", "Sports Equipment");
+        String expectedMessage = "Category with id 1 not found.";
         when(categoryService.update(eq(1L), any(CategoryRequestDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Category not found"));
+                .thenThrow(new ResourceNotFoundException(expectedMessage));
 
         mockMvc.perform(put("/api/v1/categories/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Category not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(categoryService).update(eq(1L), any(CategoryRequestDTO.class));
     }
@@ -139,11 +140,12 @@ public class CategoryControllerTest {
     @Test
     @DisplayName("DELETE /api/v1/categories/{id} -> 404 Not Found")
     void deleteCategoryNotFound() throws Exception {
-        doThrow(new ResourceNotFoundException("Category not found")).when(categoryService).delete(eq(1L));
+        String expectedMessage = "Category with id 1 not found.";
+        doThrow(new ResourceNotFoundException(expectedMessage)).when(categoryService).delete(eq(1L));
 
         mockMvc.perform(delete("/api/v1/categories/{id}", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Category not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(categoryService).delete(eq(1L));
     }
@@ -166,11 +168,12 @@ public class CategoryControllerTest {
     @Test
     @DisplayName("GET /api/v1/categories/{id} -> 404 Not Found")
     void getCategoryByIdNotFound() throws Exception {
-        when(categoryService.findById(eq(1L))).thenThrow(new ResourceNotFoundException("Category not found"));
+        String expectedMessage = "Category with id 1 not found.";
+        when(categoryService.findById(eq(1L))).thenThrow(new ResourceNotFoundException(expectedMessage));
 
         mockMvc.perform(get("/api/v1/categories/{id}", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Category not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(categoryService).findById(eq(1L));
     }
