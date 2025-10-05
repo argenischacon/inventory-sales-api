@@ -368,7 +368,7 @@ public class SaleControllerTest {
         mockMvc.perform(get("/api/v1/sales/{id}", 1L))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("An unexpected internal server error occurred"))
+                .andExpect(jsonPath("$.message").value("An unexpected internal server error occurred."))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verify(saleService).findById(eq(1L));

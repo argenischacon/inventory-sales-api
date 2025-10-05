@@ -221,7 +221,7 @@ public class CustomerControllerTest {
         mockMvc.perform(get("/api/v1/customers/{id}", 1L))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("An unexpected internal server error occurred"))
+                .andExpect(jsonPath("$.message").value("An unexpected internal server error occurred."))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 }

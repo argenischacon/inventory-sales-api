@@ -55,7 +55,7 @@ public class SecurityConfig {
                                     .timestamp(LocalDateTime.now())
                                     .status(HttpServletResponse.SC_FORBIDDEN)
                                     .error("Forbidden")
-                                    .message("Access denied: You do not have the required permissions to access this resource")
+                                    .message("Access Denied: You do not have the required permissions to access this resource.")
                                     .build();
                             res.setContentType("application/json;charset=UTF-8");
                             res.setStatus(HttpServletResponse.SC_FORBIDDEN);

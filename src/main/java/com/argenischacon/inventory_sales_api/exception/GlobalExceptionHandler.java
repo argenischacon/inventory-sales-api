@@ -113,7 +113,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(status.value())
                 .error(status.getReasonPhrase())
-                .message("Validation failed")
+                .message("Validation failed.")
                 .details(errors)
                 .build();
 
@@ -135,7 +135,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(status.value())
                 .error(status.getReasonPhrase())
-                .message("Constraint violation")
+                .message("Constraint violation.")
                 .details(errors)
                 .build();
 
@@ -162,7 +162,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        String message = String.format("The parameter '%s' with value '%s' is invalid. Expected type '%s'",
+        String message = String.format("The parameter '%s' with value '%s' is invalid. Expected type '%s'.",
                 ex.getName(), ex.getValue(), Objects.requireNonNull(ex.getRequiredType()).getSimpleName());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -198,7 +198,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(status.value())
                 .error(status.getReasonPhrase())
-                .message("An unexpected internal server error occurred") //generic message
+                .message("An unexpected internal server error occurred.") //generic message
                 .build();
 
         return new ResponseEntity<>(errorResponse, status);
