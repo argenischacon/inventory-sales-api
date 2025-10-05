@@ -60,4 +60,39 @@ public final class OpenApiExamples {
                 }
                 """;
     }
+
+    /**
+     * Error responses specific to the Category entity.
+     */
+    public static final class Category {
+        private Category() {
+        }
+
+        public static final String ERROR_404_NOT_FOUND = """
+                {
+                  "timestamp": "2024-08-01T12:02:00.000Z",
+                  "status": 404,
+                  "error": "Not Found",
+                  "message": "Category with id 999 not found."
+                }
+                """;
+
+        public static final String ERROR_409_IN_USE = """
+                {
+                  "timestamp": "2024-08-01T12:03:00.000Z",
+                  "status": 409,
+                  "error": "Conflict",
+                  "message": "Cannot delete category: it is associated with existing products."
+                }
+                """;
+
+        public static final String ERROR_409_DUPLICATE_NAME = """
+                {
+                  "timestamp": "2024-08-01T12:05:00.000Z",
+                  "status": 409,
+                  "error": "Conflict",
+                  "message": "A category with the same name already exists."
+                }
+                """;
+    }
 }

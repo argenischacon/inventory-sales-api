@@ -1,5 +1,6 @@
 package com.argenischacon.inventory_sales_api.controller.api;
 
+import com.argenischacon.inventory_sales_api.config.OpenApiExamples;
 import com.argenischacon.inventory_sales_api.dto.CategoryRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.CategoryResponseDTO;
 import com.argenischacon.inventory_sales_api.exception.ErrorResponse;
@@ -7,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -23,16 +25,36 @@ import java.util.List;
 @RequestMapping("/api/v1/categories")
 @SecurityRequirement(name = "bearerAuth")
 public interface CategoryAPI {
+
     @Operation(
-            summary = "Create a new Category",
+            summary = "Create a new category",
             description = "Creates a new category with a unique name. This operation requires ADMIN privileges."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Created - Category created successfully", content = @Content(schema = @Schema(implementation = CategoryResponseDTO.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid input data", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "409", description = "Conflict - A category with the same name already exists", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid input data", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = {
+                            @ExampleObject(name = "Validation Failed", summary = "Business rule validation failed", value = OpenApiExamples.CommonErrors.ERROR_400_VALIDATION_FAILED),
+                            @ExampleObject(name = "Malformed JSON", summary = "Invalid JSON format", value = OpenApiExamples.CommonErrors.ERROR_400_MALFORMED_JSON)
+                    }
+            )),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_401_UNAUTHORIZED)
+            )),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_403_FORBIDDEN)
+            )),
+            @ApiResponse(responseCode = "409", description = "Conflict - A category with the same name already exists", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.Category.ERROR_409_DUPLICATE_NAME)
+            )),
     })
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -44,11 +66,35 @@ public interface CategoryAPI {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK - Category updated successfully", content = @Content(schema = @Schema(implementation = CategoryResponseDTO.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid input data or invalid ID format", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "Not Found - Category not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "409", description = "Conflict - A category with the same name already exists", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json"))
+            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid input data or ID format", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = {
+                            @ExampleObject(name = "Invalid ID Format", value = OpenApiExamples.CommonErrors.ERROR_400_TYPE_MISMATCH),
+                            @ExampleObject(name = "Validation Failed", summary = "Business rule validation failed", value = OpenApiExamples.CommonErrors.ERROR_400_VALIDATION_FAILED),
+                            @ExampleObject(name = "Malformed JSON", summary = "Invalid JSON format", value = OpenApiExamples.CommonErrors.ERROR_400_MALFORMED_JSON)
+                    }
+            )),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_401_UNAUTHORIZED)
+            )),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_403_FORBIDDEN)
+            )),
+            @ApiResponse(responseCode = "404", description = "Not Found - Category not found", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.Category.ERROR_404_NOT_FOUND)
+            )),
+            @ApiResponse(responseCode = "409", description = "Conflict - A category with the same name already exists", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.Category.ERROR_409_DUPLICATE_NAME)
+            ))
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -57,16 +103,36 @@ public interface CategoryAPI {
             @Parameter(description = "Updated category object", required = true) @Valid @RequestBody CategoryRequestDTO dto);
 
     @Operation(
-            summary = "Delete a Category",
+            summary = "Delete a category",
             description = "Deletes a category by its ID. This operation fails if the category is in use by any products and requires ADMIN privileges."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "No Content - Category deleted successfully"),
-            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid ID format", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "Not Found - Category not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "409", description = "Conflict - Category is in use and cannot be deleted", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json"))
+            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid ID format", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_400_TYPE_MISMATCH)
+            )),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_401_UNAUTHORIZED)
+            )),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_403_FORBIDDEN)
+            )),
+            @ApiResponse(responseCode = "404", description = "Not Found - Category not found", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.Category.ERROR_404_NOT_FOUND)
+            )),
+            @ApiResponse(responseCode = "409", description = "Conflict - Category is in use and cannot be deleted", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.Category.ERROR_409_IN_USE)
+            ))
     })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -78,20 +144,36 @@ public interface CategoryAPI {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK - Category found", content = @Content(schema = @Schema(implementation = CategoryResponseDTO.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid ID format", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "Not Found - Category not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json"))
+            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid ID format", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_400_TYPE_MISMATCH)
+            )),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_401_UNAUTHORIZED)
+            )),
+            @ApiResponse(responseCode = "404", description = "Not Found - Category not found", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.Category.ERROR_404_NOT_FOUND)
+            ))
     })
     @GetMapping("/{id}")
     ResponseEntity<CategoryResponseDTO> findById(@Parameter(description = "ID of the category to be retrieved", required = true) @PathVariable Long id);
 
     @Operation(
-            summary = "Find all Categories",
+            summary = "Find all categories",
             description = "Retrieves a list of all categories. Accessible by any authenticated user."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "OK - Successfully retrieved list of categories", content = { @Content(array = @ArraySchema(schema = @Schema(implementation = CategoryResponseDTO.class)), mediaType = "application/json") }),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(schema = @Schema(implementation = ErrorResponse.class), mediaType = "application/json"))
+            @ApiResponse(responseCode = "200", description = "Ok - Successfully retrieved list of categories", content = { @Content(array = @ArraySchema(schema = @Schema(implementation = CategoryResponseDTO.class)), mediaType = "application/json") }),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or invalid token", content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(value = OpenApiExamples.CommonErrors.ERROR_401_UNAUTHORIZED)
+            ))
     })
     @GetMapping
     ResponseEntity<List<CategoryResponseDTO>> findAll();
