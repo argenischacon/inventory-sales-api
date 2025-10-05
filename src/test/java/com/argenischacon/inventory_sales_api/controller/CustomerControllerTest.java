@@ -119,14 +119,15 @@ public class CustomerControllerTest {
     @DisplayName("PUT /api/v1/customers/{id} -> 404 Not Found")
     void updateCustomerNotFound() throws Exception {
         CustomerRequestDTO requestDTO = new CustomerRequestDTO("87654321", "Jane", "Smith", null, null, null);
+        String expectedMessage = "Customer with id 1 not found.";
 
-        when(customerService.update(eq(1L), any(CustomerRequestDTO.class))).thenThrow(new ResourceNotFoundException("Customer not found"));
+        when(customerService.update(eq(1L), any(CustomerRequestDTO.class))).thenThrow(new ResourceNotFoundException(expectedMessage));
 
         mockMvc.perform(put("/api/v1/customers/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Customer not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(customerService, times(1)).update(eq(1L), any(CustomerRequestDTO.class));
     }
@@ -146,11 +147,12 @@ public class CustomerControllerTest {
     @Test
     @DisplayName("DELETE /api/v1/customers/{id} -> 404 Not found")
     void deleteCustomerNotFound() throws Exception {
-        doThrow(new ResourceNotFoundException("Customer not found")).when(customerService).delete(eq(1L));
+        String expectedMessage = "Customer with id 1 not found.";
+        doThrow(new ResourceNotFoundException(expectedMessage)).when(customerService).delete(eq(1L));
 
         mockMvc.perform(delete("/api/v1/customers/{id}", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Customer not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(customerService, times(1)).delete(eq(1L));
     }
@@ -174,11 +176,12 @@ public class CustomerControllerTest {
     @Test
     @DisplayName("GET /api/v1/customers/{id} -> 404 Not Found")
     void getCustomerByIdNotFound() throws Exception {
-        when(customerService.findById(eq(1L))).thenThrow(new ResourceNotFoundException("Customer not found"));
+        String expectedMessage = "Customer with id 1 not found.";
+        when(customerService.findById(eq(1L))).thenThrow(new ResourceNotFoundException(expectedMessage));
 
         mockMvc.perform(get("/api/v1/customers/{id}", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Customer not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(customerService, times(1)).findById(eq(1L));
     }

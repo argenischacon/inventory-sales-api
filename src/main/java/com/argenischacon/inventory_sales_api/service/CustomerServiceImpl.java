@@ -22,7 +22,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerResponseDTO create(CustomerRequestDTO dto) {
         if (customerRepository.existsByDni(dto.getDni())) {
-            throw new DuplicateResourceException("A customer with the DNI '" + dto.getDni() + "' already exists.");
+            throw new DuplicateResourceException("A customer with the same DNI already exists.");
         }
         Customer entity = customerMapper.toEntity(dto);
         return customerMapper.toResponse(customerRepository.save(entity));
@@ -31,11 +31,11 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerResponseDTO update(Long id, CustomerRequestDTO dto) {
         Customer entity = customerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer with id " + id + " not found."));
 
         customerRepository.findByDni(dto.getDni()).ifPresent(existingCustomer -> {
             if (!existingCustomer.getId().equals(id)) {
-                throw new DuplicateResourceException("A customer with the DNI '" + dto.getDni() + "' already exists.");
+                throw new DuplicateResourceException("A customer with the same DNI already exists.");
             }
         });
 
@@ -46,10 +46,10 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public void delete(Long id) {
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer with id " + id + " not found."));
 
         if (!customer.getSales().isEmpty()) {
-            throw new ResourceInUseException("Cannot delete customer with associated sales");
+            throw new ResourceInUseException("Cannot delete customer: it is associated with existing sales.");
         }
 
         customerRepository.delete(customer);
@@ -58,7 +58,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerResponseDTO findById(Long id) {
         Customer entity = customerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer with id " + id + " not found."));
         return customerMapper.toResponse(entity);
     }
 

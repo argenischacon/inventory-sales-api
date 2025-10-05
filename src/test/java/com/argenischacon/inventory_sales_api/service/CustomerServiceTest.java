@@ -78,7 +78,7 @@ public class CustomerServiceTest {
         DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
                 () -> customerService.create(baseRequestDTO));
 
-        assertEquals("A customer with the DNI '12345678' already exists.", ex.getMessage());
+        assertEquals("A customer with the same DNI already exists.", ex.getMessage());
         verify(customerRepository, never()).save(any(Customer.class));
     }
 
@@ -120,7 +120,7 @@ public class CustomerServiceTest {
                 () -> customerService.update(1L, baseRequestDTO)
         );
 
-        assertEquals("Customer not found", ex.getMessage());
+        assertEquals("Customer with id 1 not found.", ex.getMessage());
     }
 
     @Test
@@ -140,7 +140,7 @@ public class CustomerServiceTest {
         DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
                 () -> customerService.update(1L, updatingRequestDTO));
 
-        assertEquals("A customer with the DNI '87654321B' already exists.", ex.getMessage());
+        assertEquals("A customer with the same DNI already exists.", ex.getMessage());
         verify(customerRepository, never()).save(any(Customer.class));
     }
 
@@ -166,7 +166,7 @@ public class CustomerServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> customerService.delete(1L));
 
-        assertEquals("Customer not found", ex.getMessage());
+        assertEquals("Customer with id 1 not found.", ex.getMessage());
     }
 
     @Test
@@ -182,7 +182,7 @@ public class CustomerServiceTest {
         ResourceInUseException ex = assertThrows(ResourceInUseException.class,
                 () -> customerService.delete(1L));
 
-        assertEquals("Cannot delete customer with associated sales", ex.getMessage());
+        assertEquals("Cannot delete customer: it is associated with existing sales.", ex.getMessage());
     }
 
     // ==== FIND BY ID =====
@@ -204,7 +204,7 @@ public class CustomerServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> customerService.findById(1L));
 
-        assertEquals("Customer not found", ex.getMessage());
+        assertEquals("Customer with id 1 not found.", ex.getMessage());
     }
 
     // ==== FIND ALL =====
