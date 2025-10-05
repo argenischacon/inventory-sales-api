@@ -95,4 +95,52 @@ public final class OpenApiExamples {
                 }
                 """;
     }
+
+    /**
+     * Error responses specific to the Customer entity.
+     */
+    public static final class Customer {
+        private Customer() {
+        }
+
+        public static final String ERROR_400_VALIDATION_FAILED = """
+                {
+                    "timestamp": "2024-08-01T13:00:30.000Z",
+                    "status": 400,
+                    "error": "Bad Request",
+                    "message": "Validation failed.",
+                    "details": {
+                        "dni": "DNI is required",
+                        "email": "Must be a valid email format"
+                    }
+                }
+                """;
+
+        public static final String ERROR_404_NOT_FOUND = """
+                {
+                  "timestamp": "2024-08-01T13:02:00.000Z",
+                  "status": 404,
+                  "error": "Not Found",
+                  "message": "Customer with id 999 not found."
+                }
+                """;
+
+        public static final String ERROR_409_IN_USE = """
+                {
+                  "timestamp": "2024-08-01T13:03:00.000Z",
+                  "status": 409,
+                  "error": "Conflict",
+                  "message": "Cannot delete customer: it is associated with existing sales."
+                }
+                """;
+
+        public static final String ERROR_409_DUPLICATE_DNI = """
+                {
+                  "timestamp": "2024-08-01T13:05:00.000Z",
+                  "status": 409,
+                  "error": "Conflict",
+                  "message": "A customer with the same DNI already exists."
+                }
+                """;
+    }
 }
