@@ -242,4 +242,34 @@ public final class OpenApiExamples {
                 }
                 """;
     }
+
+    /**
+     * Error responses specific to the Authentication endpoint.
+     */
+    public static final class Auth {
+        private Auth() {
+        }
+
+        public static final String ERROR_400_VALIDATION_FAILED = """
+                {
+                    "timestamp": "2024-08-01T16:00:30.000Z",
+                    "status": 400,
+                    "error": "Bad Request",
+                    "message": "Validation failed.",
+                    "details": {
+                        "username": "Username is required",
+                        "password": "Password is required"
+                    }
+                }
+                """;
+
+        public static final String ERROR_401_INVALID_CREDENTIALS = """
+                {
+                  "timestamp": "2024-08-01T16:01:00.000Z",
+                  "status": 401,
+                  "error": "Unauthorized",
+                  "message": "Invalid credentials."
+                }
+                """;
+    }
 }
