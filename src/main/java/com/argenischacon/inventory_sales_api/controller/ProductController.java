@@ -1,48 +1,45 @@
 package com.argenischacon.inventory_sales_api.controller;
 
+import com.argenischacon.inventory_sales_api.controller.api.ProductAPI;
 import com.argenischacon.inventory_sales_api.dto.ProductRequestDTO;
 import com.argenischacon.inventory_sales_api.dto.ProductResponseDTO;
 import com.argenischacon.inventory_sales_api.service.ProductService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
-public class ProductController {
+public class ProductController implements ProductAPI {
 
     private final ProductService productService;
 
-    @PostMapping
-    public ResponseEntity<ProductResponseDTO> create(@Valid @RequestBody ProductRequestDTO dto) {
+    @Override
+    public ResponseEntity<ProductResponseDTO> create(ProductRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productService.create(dto));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> update(
-            @PathVariable Long id,
-            @Valid @RequestBody ProductRequestDTO dto) {
+    @Override
+    public ResponseEntity<ProductResponseDTO> update(Long id, ProductRequestDTO dto) {
         return ResponseEntity.ok(productService.update(id, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @Override
+    public ResponseEntity<Void> delete(Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> findById(@PathVariable Long id) {
+    @Override
+    public ResponseEntity<ProductResponseDTO> findById(Long id) {
         return ResponseEntity.ok(productService.findById(id));
     }
 
-    @GetMapping
+    @Override
     public ResponseEntity<List<ProductResponseDTO>> findAll() {
         return ResponseEntity.ok(productService.findAll());
     }

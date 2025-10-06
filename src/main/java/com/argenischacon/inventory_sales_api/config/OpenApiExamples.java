@@ -143,4 +143,54 @@ public final class OpenApiExamples {
                 }
                 """;
     }
+
+    /**
+     * Error responses specific to the Product entity.
+     */
+    public static final class Product {
+        private Product() {
+        }
+
+        public static final String ERROR_400_VALIDATION_FAILED = """
+                {
+                    "timestamp": "2024-08-01T14:00:30.000Z",
+                    "status": 400,
+                    "error": "Bad Request",
+                    "message": "Validation failed.",
+                    "details": {
+                        "name": "Name is required",
+                        "unitPrice": "Unit price is required",
+                        "stock": "Stock must be a positive number or zero",
+                        "categoryId": "Category ID is required"
+                    }
+                }
+                """;
+
+        public static final String ERROR_404_NOT_FOUND = """
+                {
+                  "timestamp": "2024-08-01T14:02:00.000Z",
+                  "status": 404,
+                  "error": "Not Found",
+                  "message": "Product with id 999 not found."
+                }
+                """;
+
+        public static final String ERROR_409_IN_USE = """
+                {
+                  "timestamp": "2024-08-01T14:03:00.000Z",
+                  "status": 409,
+                  "error": "Conflict",
+                  "message": "Cannot delete product: it is associated with existing sales."
+                }
+                """;
+
+        public static final String ERROR_409_DUPLICATE_NAME = """
+                {
+                  "timestamp": "2024-08-01T14:05:00.000Z",
+                  "status": 409,
+                  "error": "Conflict",
+                  "message": "A product with the same name already exists."
+                }
+                """;
+    }
 }
