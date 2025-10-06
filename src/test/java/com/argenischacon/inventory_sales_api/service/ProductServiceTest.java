@@ -113,7 +113,7 @@ public class ProductServiceTest {
         DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
                 () -> productService.create(baseProductRequestDTO));
 
-        assertEquals("A product with the name 'Smart TV' already exists.", ex.getMessage());
+        assertEquals("A product with the same name already exists.", ex.getMessage());
         verify(productRepository, never()).save(any(Product.class));
     }
 
@@ -124,7 +124,7 @@ public class ProductServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.create(baseProductRequestDTO));
 
-        assertEquals("Category not found", ex.getMessage());
+        assertEquals("Category with id 1 not found.", ex.getMessage());
         verify(productRepository, never()).save(any(Product.class));
     }
 
@@ -195,7 +195,7 @@ public class ProductServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.update(1L, baseProductRequestDTO));
 
-        assertEquals("Product not found", ex.getMessage());
+        assertEquals("Product with id 1 not found.", ex.getMessage());
     }
 
     @Test
@@ -211,7 +211,7 @@ public class ProductServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.update(1L, updatingRequestDTO));
 
-        assertEquals("Category not found", ex.getMessage());
+        assertEquals("Category with id 5 not found.", ex.getMessage());
     }
 
     private void mockMapperUpdate(ProductRequestDTO updatingRequestDTO) {
@@ -241,7 +241,7 @@ public class ProductServiceTest {
         DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
                 () -> productService.update(1L, updatingRequestDTO));
 
-        assertEquals("A product with the name 'Mouse' already exists.", ex.getMessage());
+        assertEquals("A product with the same name already exists.", ex.getMessage());
         verify(productRepository, never()).save(any(Product.class));
     }
 
@@ -266,7 +266,7 @@ public class ProductServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.delete(1L));
 
-        assertEquals("Product not found", ex.getMessage());
+        assertEquals("Product with id 1 not found.", ex.getMessage());
     }
 
     @Test
@@ -282,7 +282,7 @@ public class ProductServiceTest {
         ResourceInUseException ex = assertThrows(ResourceInUseException.class, () ->
                 productService.delete(1L));
 
-        assertEquals("Cannot delete product with associated sales", ex.getMessage());
+        assertEquals("Cannot delete product: it is associated with existing sales.", ex.getMessage());
     }
 
     // ==== FIND BY ID ====
@@ -304,7 +304,7 @@ public class ProductServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> productService.findById(1L));
 
-        assertEquals("Product not found", ex.getMessage());
+        assertEquals("Product with id 1 not found.", ex.getMessage());
     }
 
     // ==== FIND ALL ====

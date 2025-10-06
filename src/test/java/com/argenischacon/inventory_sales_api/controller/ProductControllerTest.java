@@ -106,16 +106,17 @@ public class ProductControllerTest {
     @DisplayName("POST /api/v1/products -> 404 Not Found (Category not found)")
     void createProductCategoryNotFound() throws Exception {
         long nonExistentCategoryId = 999L;
+        String expectedMessage = "Category with id " + nonExistentCategoryId + " not found.";
         baseProductRequestDTO.setCategoryId(nonExistentCategoryId);
 
         when(productService.create(any(ProductRequestDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Category not found"));
+                .thenThrow(new ResourceNotFoundException(expectedMessage));
 
         mockMvc.perform(post("/api/v1/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(baseProductRequestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Category not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
         verify(productService, times(1)).create(any(ProductRequestDTO.class));
     }
 
@@ -154,18 +155,19 @@ public class ProductControllerTest {
     @DisplayName("PUT /api/v1/products/{id} -> 404 Not Found")
     void updateProductNotFound() throws Exception {
         baseProductRequestDTO.setName("Smart TV");
+        String expectedMessage = "Product with id 1 not found.";
         baseProductRequestDTO.setDescription("Smart TV 4K");
         baseProductRequestDTO.setUnitPrice(BigDecimal.valueOf(900.00));
         baseProductRequestDTO.setStock(100);
 
         when(productService.update(eq(1L), any(ProductRequestDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Product not found"));
+                .thenThrow(new ResourceNotFoundException(expectedMessage));
 
         mockMvc.perform(put("/api/v1/products/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(baseProductRequestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Product not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(productService, times(1)).update(eq(1L), any(ProductRequestDTO.class));
     }
@@ -175,16 +177,17 @@ public class ProductControllerTest {
     void updateProductCategoryNotFound() throws Exception {
         long productId = 1L;
         long nonExistentCategoryId = 999L;
+        String expectedMessage = "Category with id " + nonExistentCategoryId + " not found.";
         baseProductRequestDTO.setCategoryId(nonExistentCategoryId);
 
         when(productService.update(eq(productId), any(ProductRequestDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Category not found"));
+                .thenThrow(new ResourceNotFoundException(expectedMessage));
 
         mockMvc.perform(put("/api/v1/products/{id}", productId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(baseProductRequestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Category not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(productService, times(1)).update(eq(productId), any(ProductRequestDTO.class));
     }
@@ -204,11 +207,12 @@ public class ProductControllerTest {
     @Test
     @DisplayName("DELETE /api/v1/products/{id} -> 404 Not Found")
     void deleteProductNotFound() throws Exception {
-        doThrow(new ResourceNotFoundException("Product not found")).when(productService).delete(eq(1L));
+        String expectedMessage = "Product with id 1 not found.";
+        doThrow(new ResourceNotFoundException(expectedMessage)).when(productService).delete(eq(1L));
 
         mockMvc.perform(delete("/api/v1/products/{id}", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Product not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(productService, times(1)).delete(eq(1L));
     }
@@ -234,11 +238,12 @@ public class ProductControllerTest {
     @Test
     @DisplayName("GET /api/v1/products/{id} -> 404 Not Found")
     void getProductByIdNotFound() throws Exception {
-        when(productService.findById(eq(1L))).thenThrow(new ResourceNotFoundException("Product not found"));
+        String expectedMessage = "Product with id 1 not found.";
+        when(productService.findById(eq(1L))).thenThrow(new ResourceNotFoundException(expectedMessage));
 
         mockMvc.perform(get("/api/v1/products/{id}", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Product not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
         verify(productService, times(1)).findById(eq(1L));
     }

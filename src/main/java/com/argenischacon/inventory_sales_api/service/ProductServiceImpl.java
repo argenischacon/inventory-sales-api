@@ -28,10 +28,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO create(ProductRequestDTO dto) {
         Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + dto.getCategoryId() + " not found."));
 
         if (productRepository.existsByName(dto.getName())) {
-            throw new DuplicateResourceException("A product with the name '" + dto.getName() + "' already exists.");
+            throw new DuplicateResourceException("A product with the same name already exists.");
         }
 
         Product product = productMapper.toEntity(dto);
@@ -43,11 +43,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO update(Long id, ProductRequestDTO dto) {
         Product entity = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found."));
 
         productRepository.findByName(dto.getName()).ifPresent(existingProduct -> {
             if (!existingProduct.getId().equals(id)) {
-                throw new DuplicateResourceException("A product with the name '" + dto.getName() + "' already exists.");
+                throw new DuplicateResourceException("A product with the same name already exists.");
             }
         });
 
@@ -55,7 +55,7 @@ public class ProductServiceImpl implements ProductService {
 
         if (!Objects.equals(dto.getCategoryId(), entity.getCategory().getId())) {
             Category category = categoryRepository.findById(dto.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Category with id " + dto.getCategoryId() + " not found."));
             entity.setCategory(category);
         }
         return productMapper.toResponse(productRepository.save(entity));
@@ -64,10 +64,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void delete(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found."));
 
         if (!product.getSaleDetails().isEmpty()) {
-            throw new ResourceInUseException("Cannot delete product with associated sales");
+            throw new ResourceInUseException("Cannot delete product: it is associated with existing sales.");
         }
         productRepository.delete(product);
     }
@@ -75,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO findById(Long id) {
         Product entity = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found."));
         return productMapper.toResponse(entity);
     }
 
