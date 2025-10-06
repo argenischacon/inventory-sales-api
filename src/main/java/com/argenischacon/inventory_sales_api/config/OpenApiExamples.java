@@ -193,4 +193,39 @@ public final class OpenApiExamples {
                 }
                 """;
     }
+
+    /**
+     * Error responses specific to the Sale entity.
+     */
+    public static final class Sale {
+        private Sale() {
+        }
+
+        public static final String ERROR_404_NOT_FOUND = """
+                {
+                  "timestamp": "2024-08-01T15:02:00.000Z",
+                  "status": 404,
+                  "error": "Not Found",
+                  "message": "Sale with id 999 not found."
+                }
+                """;
+
+        public static final String ERROR_409_INSUFFICIENT_STOCK = """
+                {
+                  "timestamp": "2024-08-01T15:03:00.000Z",
+                  "status": 409,
+                  "error": "Conflict",
+                  "message": "Insufficient stock for product 'Laptop'. Requested: 10, Available: 5."
+                }
+                """;
+
+        public static final String ERROR_404_DETAIL_NOT_IN_SALE = """
+                {
+                  "timestamp": "2024-08-01T15:04:00.000Z",
+                  "status": 404,
+                  "error": "Not Found",
+                  "message": "In this sale with id 999, there is no sale detail with id 999."
+                }
+                """;
+    }
 }
