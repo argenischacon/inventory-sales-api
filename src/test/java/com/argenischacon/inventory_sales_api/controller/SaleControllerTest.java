@@ -111,14 +111,15 @@ public class SaleControllerTest {
     @Test
     @DisplayName("POST /api/v1/sales -> 404 Not Found (Customer not found)")
     void createSaleCustomerNotFound() throws Exception {
+        long nonExistentCustomerId = baseSaleRequestDTO.getCustomerId();
         when(saleService.create(any(SaleRequestDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Customer not found"));
+                .thenThrow(new ResourceNotFoundException("Customer with id " + nonExistentCustomerId + " not found."));
 
         mockMvc.perform(post("/api/v1/sales")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(baseSaleRequestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Customer not found"));
+                .andExpect(jsonPath("$.message").value("Customer with id " + nonExistentCustomerId + " not found."));
 
         verify(saleService).create(any(SaleRequestDTO.class));
     }
@@ -128,13 +129,13 @@ public class SaleControllerTest {
     void createSaleProductNotFound() throws Exception {
         long nonExistentProductId = 999L;
         when(saleService.create(any(SaleRequestDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Product not found with id: " + nonExistentProductId));
+                .thenThrow(new ResourceNotFoundException("Product with id " + nonExistentProductId + " not found."));
 
         mockMvc.perform(post("/api/v1/sales")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(baseSaleRequestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Product not found with id: " + nonExistentProductId));
+                .andExpect(jsonPath("$.message").value("Product with id " + nonExistentProductId + " not found."));
 
         verify(saleService).create(any(SaleRequestDTO.class));
     }
@@ -145,7 +146,7 @@ public class SaleControllerTest {
         long productId = 3L;
         int requested = 10;
         int available = 5;
-        String errorMessage = String.format("Insufficient stock for product 'Laptop'. Requested: %d, Available: %d", requested, available);
+        String errorMessage = String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d.", "Laptop", requested, available);
 
         when(saleService.create(any(SaleRequestDTO.class)))
                 .thenThrow(new InsufficientStockException(errorMessage, productId, requested, available));
@@ -186,14 +187,15 @@ public class SaleControllerTest {
     @Test
     @DisplayName("PUT /api/v1/sales/{id} -> 404 Not Found")
     void updateSaleNotFound() throws Exception {
-        when(saleService.update(eq(1L), any(SaleRequestDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Sale not found"));
+        long saleId = 1L;
+        when(saleService.update(eq(saleId), any(SaleRequestDTO.class)))
+                .thenThrow(new ResourceNotFoundException("Sale with id " + saleId + " not found."));
 
         mockMvc.perform(put("/api/v1/sales/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(baseSaleRequestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Sale not found"));
+                .andExpect(jsonPath("$.message").value("Sale with id " + saleId + " not found."));
 
         verify(saleService).update(eq(1L), any(SaleRequestDTO.class));
     }
@@ -206,13 +208,13 @@ public class SaleControllerTest {
         baseSaleRequestDTO.setCustomerId(nonExistentCustomerId);
 
         when(saleService.update(eq(saleId), any(SaleRequestDTO.class)))
-                .thenThrow(new ResourceNotFoundException("Customer not found"));
+                .thenThrow(new ResourceNotFoundException("Customer with id " + nonExistentCustomerId + " not found."));
 
         mockMvc.perform(put("/api/v1/sales/{id}", saleId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(baseSaleRequestDTO)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Customer not found"));
+                .andExpect(jsonPath("$.message").value("Customer with id " + nonExistentCustomerId + " not found."));
 
         verify(saleService).update(eq(saleId), any(SaleRequestDTO.class));
     }
@@ -222,7 +224,7 @@ public class SaleControllerTest {
     void updateSaleProductNotFound() throws Exception {
         long saleId = 1L;
         long nonExistentProductId = 999L;
-        String errorMessage = "Product not found with id: " + nonExistentProductId;
+        String errorMessage = "Product with id " + nonExistentProductId + " not found.";
 
         when(saleService.update(eq(saleId), any(SaleRequestDTO.class)))
                 .thenThrow(new ResourceNotFoundException(errorMessage));
@@ -239,7 +241,7 @@ public class SaleControllerTest {
     void updateSaleWithNonExistentSaleDetailId() throws Exception {
         long saleId = 1L;
         long nonExistentSaleDetailId = 999L;
-        String errorMessage = "In this sale, there is no sale detail with id: " + nonExistentSaleDetailId;
+        String errorMessage = "In this sale with id " + saleId + ", there is no sale detail with id " + nonExistentSaleDetailId + ".";
 
         // Modify the request DTO to include an invalid detail ID
         baseSaleRequestDTO.getSaleDetails().getFirst().setId(nonExistentSaleDetailId);
@@ -263,7 +265,7 @@ public class SaleControllerTest {
         long productId = 3L;
         int requested = 10;
         int available = 5;
-        String errorMessage = String.format("Insufficient stock for product 'Laptop'. Requested: %d, Available: %d", requested, available);
+        String errorMessage = String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d.", "Laptop", requested, available);
 
         when(saleService.update(eq(saleId), any(SaleRequestDTO.class)))
                 .thenThrow(new InsufficientStockException(errorMessage, productId, requested, available));
@@ -295,11 +297,12 @@ public class SaleControllerTest {
     @Test
     @DisplayName("DELETE /api/v1/sales/{id} -> 404 Not Found")
     void deleteSaleNotFound() throws Exception {
-        doThrow(new ResourceNotFoundException("Sale not found")).when(saleService).delete(eq(1L));
+        long saleId = 1L;
+        doThrow(new ResourceNotFoundException("Sale with id " + saleId + " not found.")).when(saleService).delete(eq(saleId));
 
         mockMvc.perform(delete("/api/v1/sales/{id}", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Sale not found"));
+                .andExpect(jsonPath("$.message").value("Sale with id " + saleId + " not found."));
 
         verify(saleService).delete(eq(1L));
     }
@@ -322,12 +325,13 @@ public class SaleControllerTest {
     @Test
     @DisplayName("GET /api/v1/sales/{id} -> 404 Not Found")
     void getSaleByIdNotFound() throws Exception {
-        when(saleService.findById(eq(1L)))
-                .thenThrow(new ResourceNotFoundException("Sale not found"));
+        long saleId = 1L;
+        when(saleService.findById(eq(saleId)))
+                .thenThrow(new ResourceNotFoundException("Sale with id " + saleId + " not found."));
 
         mockMvc.perform(get("/api/v1/sales/{id}", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Sale not found"));
+                .andExpect(jsonPath("$.message").value("Sale with id " + saleId + " not found."));
 
         verify(saleService).findById(eq(1L));
     }

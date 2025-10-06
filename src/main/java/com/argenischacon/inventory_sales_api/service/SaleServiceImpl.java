@@ -37,7 +37,7 @@ public class SaleServiceImpl implements SaleService {
     @Transactional
     public SaleResponseDTO create(SaleRequestDTO dto) {
         Customer customer = customerRepository.findById(dto.getCustomerId())
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer with id " + dto.getCustomerId() + " not found."));
 
         Sale sale = new Sale();
         sale.setDate(LocalDate.now());
@@ -52,10 +52,10 @@ public class SaleServiceImpl implements SaleService {
     @Transactional
     public SaleResponseDTO update(Long id, SaleRequestDTO dto) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale with id " + id + " not found."));
 
         Customer customer = customerRepository.findById(dto.getCustomerId())
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer with id " + dto.getCustomerId() + " not found."));
 
         sale.setCustomer(customer);
 
@@ -89,7 +89,7 @@ public class SaleServiceImpl implements SaleService {
     @Transactional
     public void delete(Long id) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale with id " + id + " not found."));
 
         //Restore stock for each product in the sale
         sale.getSaleDetails().forEach(detail -> updateStock(detail.getProduct(), detail.getQuantity()));
@@ -100,7 +100,7 @@ public class SaleServiceImpl implements SaleService {
     @Override
     public SaleResponseDTO findById(Long id) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale with id " + id + " not found."));
 
         return saleMapper.toResponse(sale);
     }
@@ -115,7 +115,7 @@ public class SaleServiceImpl implements SaleService {
         if (newStock < 0) {
             int requested = -quantityChange;
             int available = product.getStock();
-            String message = String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d",
+            String message = String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d.",
                     product.getName(), requested, available);
             throw new InsufficientStockException(message, product.getId(), requested, available);
         }
@@ -138,8 +138,7 @@ public class SaleServiceImpl implements SaleService {
                 .map(dto -> {
                     Product product = productsMap.get(dto.getProductId());
                     if (product == null) {
-                        // non-existent product
-                        throw new ResourceNotFoundException("Product not found with id: " + dto.getProductId());
+                        throw new ResourceNotFoundException("Product with id " + dto.getProductId() + " not found.");
                     }
 
                     SaleDetail saleDetail;
@@ -148,7 +147,7 @@ public class SaleServiceImpl implements SaleService {
                     if (dto.getId() != null) {
                         //verify if it belongs to the sale
                         if (existingDetailsMap == null || !existingDetailsMap.containsKey(dto.getId())) {
-                            throw new ResourceNotFoundException("In this sale, there is no sale detail with id: " + dto.getId());
+                            throw new ResourceNotFoundException("In this sale with id " + sale.getId() + ", there is no sale detail with id " + dto.getId() + ".");
                         }
                         // update detail
                         saleDetail = existingDetailsMap.get(dto.getId());

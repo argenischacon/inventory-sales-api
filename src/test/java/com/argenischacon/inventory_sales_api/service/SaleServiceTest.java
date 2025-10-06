@@ -160,13 +160,14 @@ public class SaleServiceTest{
 
     @Test
     void shouldThrowExceptionWhenCreatingSaleNonExistingCustomer() {
-        when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+        long customerId = baseSaleRequestDTO.getCustomerId();
+        when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleService.create(baseSaleRequestDTO));
 
-        assertEquals("Customer not found", ex.getMessage());
-        verify(customerRepository).findById(1L);
+        assertEquals("Customer with id " + customerId + " not found.", ex.getMessage());
+        verify(customerRepository).findById(customerId);
         verifyNoInteractions(productRepository, saleRepository, saleMapper);
     }
 
@@ -181,7 +182,7 @@ public class SaleServiceTest{
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () ->
                 saleService.create(baseSaleRequestDTO));
 
-        assertEquals("Product not found with id: " + productId, ex.getMessage());
+        assertEquals("Product with id " + productId + " not found.", ex.getMessage());
         verify(customerRepository).findById(customerId);
         verify(productRepository).findAllById(List.of(productId));
         verifyNoInteractions(saleRepository, saleMapper);
@@ -200,7 +201,7 @@ public class SaleServiceTest{
         InsufficientStockException ex = assertThrows(InsufficientStockException.class,
                 () -> saleService.create(baseSaleRequestDTO));
 
-        assertEquals(String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d",
+        assertEquals(String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d.",
                 baseProduct.getName(), requestedQuantity, baseProduct.getStock()), ex.getMessage());
     }
 
@@ -236,27 +237,30 @@ public class SaleServiceTest{
 
     @Test
     void shouldThrowExceptionWhenUpdatingNonExistingSale() {
-        when(saleRepository.findById(200L)).thenReturn(Optional.empty());
+        long saleId = 200L;
+        when(saleRepository.findById(saleId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
-                () -> saleService.update(200L, baseSaleRequestDTO));
+                () -> saleService.update(saleId, baseSaleRequestDTO));
 
-        assertEquals("Sale not found", ex.getMessage());
-        verify(saleRepository).findById(200L);
+        assertEquals("Sale with id " + saleId + " not found.", ex.getMessage());
+        verify(saleRepository).findById(saleId);
         verifyNoInteractions(customerRepository, productRepository, saleMapper);
     }
 
     @Test
     void shouldThrowExceptionWhenUpdatingSaleWithNonExistingCustomer() {
-        when(saleRepository.findById(200L)).thenReturn(Optional.of(baseSale));
-        when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+        long saleId = 200L;
+        long customerId = baseSaleRequestDTO.getCustomerId();
+        when(saleRepository.findById(saleId)).thenReturn(Optional.of(baseSale));
+        when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
-                () -> saleService.update(200L, baseSaleRequestDTO));
+                () -> saleService.update(saleId, baseSaleRequestDTO));
 
-        assertEquals("Customer not found", ex.getMessage());
-        verify(saleRepository).findById(200L);
-        verify(customerRepository).findById(1L);
+        assertEquals("Customer with id " + customerId + " not found.", ex.getMessage());
+        verify(saleRepository).findById(saleId);
+        verify(customerRepository).findById(customerId);
         verify(saleRepository, never()).save(any(Sale.class));
     }
 
@@ -273,7 +277,7 @@ public class SaleServiceTest{
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleService.update(saleId, baseSaleRequestDTO));
 
-        assertEquals("Product not found with id: " + productId, ex.getMessage());
+        assertEquals("Product with id " + productId + " not found.", ex.getMessage());
         verify(saleRepository).findById(saleId);
         verify(customerRepository).findById(customerId);
         verify(productRepository).findAllById(List.of(productId));
@@ -285,7 +289,8 @@ public class SaleServiceTest{
         Long saleId = baseSale.getId();
         Long customerId = baseCustomer.getId();
         Long productId = baseProduct.getId();
-        baseSaleDetailRequestDTO.setId(999L); // Non-existent detail ID
+        long nonExistentDetailId = 999L;
+        baseSaleDetailRequestDTO.setId(nonExistentDetailId); // Non-existent detail ID
 
         when(saleRepository.findById(saleId)).thenReturn(Optional.of(baseSale));
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(baseCustomer));
@@ -294,7 +299,7 @@ public class SaleServiceTest{
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleService.update(saleId, baseSaleRequestDTO));
 
-        assertEquals("In this sale, there is no sale detail with id: 999", ex.getMessage());
+        assertEquals("In this sale with id " + saleId + ", there is no sale detail with id " + nonExistentDetailId + ".", ex.getMessage());
         verify(saleRepository).findById(saleId);
         verify(customerRepository).findById(customerId);
         verify(productRepository).findAllById(List.of(productId));
@@ -375,7 +380,7 @@ public class SaleServiceTest{
         InsufficientStockException ex = assertThrows(InsufficientStockException.class,
                 () -> saleService.update(200L, baseSaleRequestDTO));
 
-        assertEquals(String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d",
+        assertEquals(String.format("Insufficient stock for product '%s'. Requested: %d, Available: %d.",
                 baseProduct.getName(), quantityChange, baseProduct.getStock()), ex.getMessage());
 
         verify(saleRepository, never()).save(any(Sale.class));
@@ -401,14 +406,15 @@ public class SaleServiceTest{
     @Test
     void shouldThrowExceptionWhenDeletingNonExistingSale() {
         // Arrange
-        when(saleRepository.findById(200L)).thenReturn(Optional.empty());
+        long saleId = 200L;
+        when(saleRepository.findById(saleId)).thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
-                () -> saleService.delete(200L));
+                () -> saleService.delete(saleId));
 
-        assertEquals("Sale not found", ex.getMessage());
-        verify(saleRepository).findById(200L);
+        assertEquals("Sale with id " + saleId + " not found.", ex.getMessage());
+        verify(saleRepository).findById(saleId);
         verify(saleRepository, never()).deleteById(anyLong());
     }
 
@@ -428,13 +434,14 @@ public class SaleServiceTest{
 
     @Test
     void shouldThrowExceptionWhenFindingNonExistingSale() {
-        when(saleRepository.findById(200L)).thenReturn(Optional.empty());
+        long saleId = 200L;
+        when(saleRepository.findById(saleId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
-                () -> saleService.findById(200L));
+                () -> saleService.findById(saleId));
 
-        assertEquals("Sale not found", ex.getMessage());
-        verify(saleRepository).findById(200L);
+        assertEquals("Sale with id " + saleId + " not found.", ex.getMessage());
+        verify(saleRepository).findById(saleId);
         verifyNoInteractions(saleMapper);
     }
 
