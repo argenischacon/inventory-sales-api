@@ -20,7 +20,7 @@ public class SaleDetailServiceImpl implements SaleDetailService{
     @Override
     public List<SaleDetailResponseDTO> findBySaleId(Long saleId) {
         if(!saleRepository.existsById(saleId)){
-            throw new ResourceNotFoundException("Sale not found");
+            throw new ResourceNotFoundException("Sale with id " + saleId + " not found.");
         }
         return saleDetailMapper.toResponseList(saleDetailRepository.findBySaleId(saleId));
     }

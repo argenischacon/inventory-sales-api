@@ -73,13 +73,15 @@ public class SaleDetailControllerTest {
     @Test
     @DisplayName("GET /api/v1/sale-details/{saleId} -> 404 Not Found")
     void getSaleDetailsBySaleIdNotFound() throws Exception {
-        when(saleDetailService.findBySaleId(eq(5L))).thenThrow(new ResourceNotFoundException("Sale not found"));
+        long saleId = 5L;
+        String expectedMessage = "Sale with id " + saleId + " not found.";
+        when(saleDetailService.findBySaleId(eq(saleId))).thenThrow(new ResourceNotFoundException(expectedMessage));
 
-        mockMvc.perform(get("/api/v1/sale-details/{saleId}", 5L))
+        mockMvc.perform(get("/api/v1/sale-details/{saleId}", saleId))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Sale not found"));
+                .andExpect(jsonPath("$.message").value(expectedMessage));
 
-        verify(saleDetailService, times(1)).findBySaleId(eq(5L));
+        verify(saleDetailService, times(1)).findBySaleId(eq(saleId));
     }
 
     @Test

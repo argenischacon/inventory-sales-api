@@ -86,7 +86,7 @@ public class SaleDetailServiceTest {
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
                 () -> saleDetailService.findBySaleId(saleId));
 
-        assertEquals("Sale not found", ex.getMessage());
+        assertEquals("Sale with id " + saleId + " not found.", ex.getMessage());
         verify(saleRepository).existsById(saleId);
         verifyNoInteractions(saleDetailRepository, saleDetailMapper);
     }
