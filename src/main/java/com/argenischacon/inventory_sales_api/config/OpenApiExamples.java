@@ -201,6 +201,20 @@ public final class OpenApiExamples {
         private Sale() {
         }
 
+        public static final String ERROR_400_VALIDATION_FAILED = """
+                {
+                    "timestamp": "2024-08-01T15:00:30.000Z",
+                    "status": 400,
+                    "error": "Bad Request",
+                    "message": "Validation failed.",
+                    "details": {
+                        "customerId": "Customer ID is required",
+                        "saleDetails": "Must have at least one sale detail",
+                        "saleDetails[0].quantity": "Quantity must be a positive number"
+                    }
+                }
+                """;
+
         public static final String ERROR_404_NOT_FOUND = """
                 {
                   "timestamp": "2024-08-01T15:02:00.000Z",
