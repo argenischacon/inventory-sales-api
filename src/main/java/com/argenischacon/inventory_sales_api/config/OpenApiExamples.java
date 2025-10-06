@@ -272,4 +272,41 @@ public final class OpenApiExamples {
                 }
                 """;
     }
+
+    /**
+     * Example responses specific to the Product Audit entity.
+     */
+    public static final class ProductAudit {
+        private ProductAudit() {
+        }
+
+        public static final String SUCCESS_200_OK = """
+                [
+                  {
+                    "revisionId": 1,
+                    "username": "admin",
+                    "revisionDate": "2024-08-01T10:59:00.123456Z",
+                    "revisionType": "INSERT",
+                    "id": 1,
+                    "name": "Laptop Pro 15",
+                    "description": "A high-performance laptop for professionals.",
+                    "unitPrice": 1299.99,
+                    "stock": 50,
+                    "categoryId": 1
+                  },
+                  {
+                    "revisionId": 2,
+                    "username": "admin",
+                    "revisionDate": "2024-08-01T11:30:00.789012Z",
+                    "revisionType": "UPDATE",
+                    "id": 1,
+                    "name": "Laptop Pro 15",
+                    "description": "A high-performance laptop for professionals.",
+                    "unitPrice": 1250.00,
+                    "stock": 48,
+                    "categoryId": 1
+                  }
+                ]
+                """;
+    }
 }
