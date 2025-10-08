@@ -6,11 +6,13 @@ import com.argenischacon.inventory_sales_api.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
 
 @Configuration
+@Profile({"dev", "demo"})
 public class DataLoader {
     @Bean
     CommandLineRunner load(UserRepository repo, PasswordEncoder passwordEncoder) {
