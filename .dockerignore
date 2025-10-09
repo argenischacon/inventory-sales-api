@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gitattributes
+.mvn
+target/
+.idea
+*.iml
+*.iws
+*.ipr
+.vscode
+*.log
+*.tmp
+src/test
